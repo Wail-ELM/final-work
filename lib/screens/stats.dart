@@ -1,29 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/progress_circle.dart';
+import '../providers/mood_provider.dart';
 
-class StatsScreen extends StatelessWidget {
+class StatsScreen extends ConsumerWidget {
   const StatsScreen({Key? key}) : super(key: key);
-
   @override
-  Widget build(BuildContext context) {
-    const dailyPercent = 0.75;
-    const weeklyPercent = 0.60;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(moodStatsProvider);
+    final avg = stats.count == 0 ? 0.0 : stats.averageMood / 5.0;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Statistieken')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text('Dagelijks doel', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            ProgressCircle(percent: dailyPercent, label: 'vandaag'),
-            const SizedBox(height: 32),
-            Text('Wekelijkse doel', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            ProgressCircle(percent: weeklyPercent, label: 'deze week'),
-          ],
-        ),
+    return Center(
+      child: ProgressCircle(
+        percentage: avg,
+        size: 140,
+        label: stats.count == 0 ? 'Geen gegevens' : '${(avg * 100).round()}%',
       ),
     );
   }

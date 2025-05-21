@@ -1,40 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/progress_circle.dart';
 import '../widgets/challenge_card.dart';
+import '../providers/challenge_provider.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Social Balans'), centerTitle: true, elevation: 0),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-        children: [
-          Text(
-            '“Een goede balans is een bewuste keuze.”',
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(fontStyle: FontStyle.italic),
-            textAlign: TextAlign.center,
+  Widget build(BuildContext c, WidgetRef ref) {
+    final challenges = ref.watch(allChallengesProvider);
+    final percentDone = challenges.isEmpty
+        ? 0.0
+        : (challenges.where((c) => c.isDone).length / challenges.length);
+
+    return ListView(
+      children: [
+        const SizedBox(height: 24),
+        Center(
+          child: ProgressCircle(
+            percentage: percentDone,
+            size: 120,
+            label: '${(percentDone * 100).round()}%',
           ),
-          const SizedBox(height: 32),
-          const Center(child: ProgressCircle(percent: 0.7, label: 'vandaag')),
-          const SizedBox(height: 32),
+        ),
+        const SizedBox(height: 24),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text('Je volgende uitdagingen',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(height: 12),
+        for (final c in challenges.where((c) => !c.isDone))
           ChallengeCard(
-            title: '30 min zonder telefoon tijdens ontbijt',
-            xp: 15,
-            icon: Icons.free_breakfast,
-            onComplete: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Goed gedaan! +15 XP')),
-              );
-            },
+            challenge: c,
+            actionLabel: 'Voltooi',
+            onAction: () =>
+                ref.read(challengeProvider(c.id).notifier).markDone(),
           ),
-        ],
-      ),
+      ],
     );
   }
 }
