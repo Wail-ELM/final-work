@@ -7,35 +7,98 @@ class AppTheme {
 
   static final TextTheme _textTheme = TextTheme(
     displayLarge: GoogleFonts.openSans(
-      fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black87,
+      fontSize: 32,
+      fontWeight: FontWeight.bold,
+      color: Colors.black87,
     ),
     displayMedium: GoogleFonts.openSans(
-      fontSize: 24, fontWeight: FontWeight.w600, color: Colors.black87,
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      color: Colors.black87,
     ),
     titleMedium: GoogleFonts.openSans(
-      fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87,
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: Colors.black87,
     ),
     bodyLarge: GoogleFonts.openSans(fontSize: 16, color: Colors.black87),
     bodyMedium: GoogleFonts.openSans(fontSize: 14, color: Colors.black54),
   );
 
-  static final ThemeData lightTheme = ThemeData(
-    colorScheme: ColorScheme.fromSwatch().copyWith(
-      primary: primaryColor,
-      secondary: accentColor,
+  static final lightTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: const Color(0xFF6750A4),
+      brightness: Brightness.light,
     ),
-    scaffoldBackgroundColor: Colors.white,
-    appBarTheme: AppBarTheme(
-      backgroundColor: primaryColor,
-      titleTextStyle: _textTheme.displayMedium?.copyWith(color: Colors.white),
-      iconTheme: const IconThemeData(color: Colors.white),
+    appBarTheme: const AppBarTheme(
+      centerTitle: true,
+      elevation: 0,
     ),
-    textTheme: _textTheme,
+    cardTheme: CardTheme(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: accentColor,
-        foregroundColor: Colors.white,
-        minimumSize: const Size(88, 48),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 16,
+      ),
+    ),
+    scaffoldBackgroundColor: Colors.white,
+    textTheme: _textTheme,
+  );
+
+  static final darkTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: const Color(0xFF6750A4),
+      brightness: Brightness.dark,
+    ),
+    appBarTheme: const AppBarTheme(
+      centerTitle: true,
+      elevation: 0,
+    ),
+    cardTheme: CardTheme(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 16,
       ),
     ),
   );

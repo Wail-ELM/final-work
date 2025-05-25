@@ -18,27 +18,42 @@ class ChallengeAdapter extends TypeAdapter<Challenge> {
     };
     return Challenge(
       id: fields[0] as String,
-      title: fields[1] as String,
-      description: fields[2] as String,
-      xpReward: fields[3] as int,
-      isDone: fields[4] as bool,
+      userId: fields[1] as String,
+      title: fields[2] as String,
+      description: fields[3] as String?,
+      category: fields[4] as ChallengeCategory,
+      startDate: fields[5] as DateTime,
+      endDate: fields[6] as DateTime?,
+      isDone: fields[7] as bool,
+      createdAt: fields[8] as DateTime,
+      updatedAt: fields[9] as DateTime,
     );
   }
 
   @override
   void write(BinaryWriter writer, Challenge obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.title)
+      ..write(obj.userId)
       ..writeByte(2)
-      ..write(obj.description)
+      ..write(obj.title)
       ..writeByte(3)
-      ..write(obj.xpReward)
+      ..write(obj.description)
       ..writeByte(4)
-      ..write(obj.isDone);
+      ..write(obj.category)
+      ..writeByte(5)
+      ..write(obj.startDate)
+      ..writeByte(6)
+      ..write(obj.endDate)
+      ..writeByte(7)
+      ..write(obj.isDone)
+      ..writeByte(8)
+      ..write(obj.createdAt)
+      ..writeByte(9)
+      ..write(obj.updatedAt);
   }
 
   @override

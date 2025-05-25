@@ -3,48 +3,77 @@ part 'mood_entry.g.dart';
 
 @HiveType(typeId: 1)
 class MoodEntry extends HiveObject {
-  @HiveField(0) final DateTime date;
-  @HiveField(1) final String emoji;
-  @HiveField(2) final String? note;
-  @HiveField(3) final int value;
-  @HiveField(4) final String? id;
+  @HiveField(0)
+  final String id;
+  @HiveField(1)
+  final String userId;
+  @HiveField(2)
+  final int moodValue;
+  @HiveField(3)
+  final String? note;
+  @HiveField(4)
+  final DateTime createdAt;
 
   MoodEntry({
-    required this.date,
-    required this.emoji,
-    required this.value,
+    required this.id,
+    required this.userId,
+    required this.moodValue,
     this.note,
-    this.id,
+    required this.createdAt,
   });
 
+  factory MoodEntry.fromJson(Map<String, dynamic> json) {
+    return MoodEntry(
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      moodValue: json['mood_value'] as int,
+      note: json['note'] as String?,
+      createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'mood_value': moodValue,
+      'note': note,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
   MoodEntry copyWith({
-    DateTime? date,
-    String? emoji,
-    String? note,
-    int? value,
     String? id,
+    String? userId,
+    int? moodValue,
+    String? note,
+    DateTime? createdAt,
   }) =>
       MoodEntry(
-        date: date ?? this.date,
-        emoji: emoji ?? this.emoji,
-        value: value ?? this.value,
-        note: note ?? this.note,
         id: id ?? this.id,
+        userId: userId ?? this.userId,
+        moodValue: moodValue ?? this.moodValue,
+        note: note ?? this.note,
+        createdAt: createdAt ?? this.createdAt,
       );
 
   @override
   String toString() =>
-      'MoodEntry(date: $date, emoji: $emoji, value: $value, note: $note, id: $id)';
+      'MoodEntry(id: $id, userId: $userId, moodValue: $moodValue, note: $note, createdAt: $createdAt)';
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is MoodEntry &&
-          date == other.date &&
-          emoji == other.emoji &&
-          value == other.value &&
+          id == other.id &&
+          userId == other.userId &&
+          moodValue == other.moodValue &&
           note == other.note &&
-          id == other.id;
+          createdAt == other.createdAt;
   @override
   int get hashCode =>
-      date.hashCode ^ emoji.hashCode ^ value.hashCode ^ (note?.hashCode ?? 0) ^ (id?.hashCode ?? 0);
+      id.hashCode ^
+      userId.hashCode ^
+      moodValue.hashCode ^
+      (note?.hashCode ?? 0) ^
+      createdAt.hashCode;
 }

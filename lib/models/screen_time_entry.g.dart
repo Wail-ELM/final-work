@@ -1,44 +1,38 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'mood_entry.dart';
+part of 'screen_time_entry.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class MoodEntryAdapter extends TypeAdapter<MoodEntry> {
+class ScreenTimeEntryAdapter extends TypeAdapter<ScreenTimeEntry> {
   @override
-  final int typeId = 1;
+  final int typeId = 2;
 
   @override
-  MoodEntry read(BinaryReader reader) {
+  ScreenTimeEntry read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return MoodEntry(
-      id: fields[0] as String,
-      userId: fields[1] as String,
-      moodValue: fields[2] as int,
-      note: fields[3] as String?,
-      createdAt: fields[4] as DateTime,
+    return ScreenTimeEntry(
+      date: fields[0] as DateTime,
+      appName: fields[1] as String,
+      duration: fields[2] as Duration,
     );
   }
 
   @override
-  void write(BinaryWriter writer, MoodEntry obj) {
+  void write(BinaryWriter writer, ScreenTimeEntry obj) {
     writer
-      ..writeByte(5)
-      ..writeByte(0)
-      ..write(obj.id)
-      ..writeByte(1)
-      ..write(obj.userId)
-      ..writeByte(2)
-      ..write(obj.moodValue)
       ..writeByte(3)
-      ..write(obj.note)
-      ..writeByte(4)
-      ..write(obj.createdAt);
+      ..writeByte(0)
+      ..write(obj.date)
+      ..writeByte(1)
+      ..write(obj.appName)
+      ..writeByte(2)
+      ..write(obj.duration);
   }
 
   @override
@@ -47,7 +41,7 @@ class MoodEntryAdapter extends TypeAdapter<MoodEntry> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MoodEntryAdapter &&
+      other is ScreenTimeEntryAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
