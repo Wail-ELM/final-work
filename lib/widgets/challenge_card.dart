@@ -1,64 +1,40 @@
 import 'package:flutter/material.dart';
-import '../theme.dart';
+import '../models/challenge.dart';
 
 class ChallengeCard extends StatelessWidget {
-  final String title;
-  final int xp;
-  final IconData icon;
-  final VoidCallback onComplete;
+  final Challenge challenge;
+  final String actionLabel;
+  final VoidCallback onAction;
 
   const ChallengeCard({
-    Key? key,
-    required this.title,
-    required this.xp,
-    required this.icon,
-    required this.onComplete,
-  }) : super(key: key);
+    super.key,
+    required this.challenge,
+    required this.actionLabel,
+    required this.onAction,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context);
     return Card(
-      color: Colors.white,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          // Ne pas prendre toute la hauteur disponible
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, size: 32, color: Theme.of(context).primaryColor),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ),
-              ],
-            ),
+            Text(challenge.title, style: t.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(challenge.description, style: t.textTheme.bodyMedium),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // On laisse le bouton être à sa taille intrinsèque
-                ElevatedButton(
-                  onPressed: onComplete,
-                  child: const Text('Done'),
-                ),
-                Row(
-                  children: [
-                    const Icon(Icons.star, size: 20, color: AppTheme.pastelGold),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$xp XP',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
-                ),
-              ],
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: onAction,
+                child: Text(actionLabel),
+              ),
             ),
           ],
         ),

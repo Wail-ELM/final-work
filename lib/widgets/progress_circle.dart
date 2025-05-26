@@ -1,45 +1,71 @@
-import 'package:flutter/material.dart';
-import '../theme.dart';
+  import 'dart:math';
+  import 'package:flutter/material.dart';
 
-class ProgressCircle extends StatelessWidget {
-  final double percent; // 0.0 – 1.0
-  final String label;
+  class ProgressCircle extends StatelessWidget {
+    final double percentage;
+    final double size;
+    final String label;
 
-  const ProgressCircle({
-    Key? key,
-    required this.percent,
-    required this.label,
-  }) : super(key: key);
+    const ProgressCircle({
+      super.key,
+      required this.percentage,
+      this.size = 100,
+      this.label = '',
+    });
 
-  @override
-  Widget build(BuildContext context) {
-    const size = 120.0;
-    const strokeWidth = 12.0;
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              value: percent,
-              strokeWidth: strokeWidth,
-              backgroundColor: AppTheme.pastelLavender,
-              valueColor: AlwaysStoppedAnimation(AppTheme.pastelCoral),
+    @override
+    Widget build(BuildContext context) {
+      final color = Theme.of(context).colorScheme.primary;
+      return SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(
+          painter: _CirclePainter(percentage, color),
+          child: Center(
+            child: Text(
+              label.isNotEmpty ? label : '${(percentage * 100).round()}%',
+              style: Theme.of(context).textTheme.displayMedium,
             ),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('${(percent * 100).round()}%', style: Theme.of(context).textTheme.headlineMedium),
-              Text(label, style: Theme.of(context).textTheme.titleMedium),
-            ],
-          ),
-        ],
-      ),
-    );
+        ),
+      );
+    }
   }
-}
+
+  class _CirclePainter extends CustomPainter {
+    final double percentage;
+    final Color color;
+    _CirclePainter(this.percentage, this.color);
+
+    @override
+    void paint(Canvas canvas, Size size) {
+      final stroke = 8.0;
+      final radius = (size.width - stroke) / 2;
+      final center = Offset(size.width / 2, size.height / 2);
+
+      final bg = Paint()
+        ..color = Colors.grey.shade300
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke;
+
+      final fg = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawCircle(center, radius, bg);
+      final sweep = 2 * pi * percentage;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -pi / 2,
+        sweep,
+        false,
+        fg,
+      );
+    }
+
+    @override
+    bool shouldRepaint(covariant _CirclePainter old) =>
+        old.percentage != percentage || old.color != color;
+  }
