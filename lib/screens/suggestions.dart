@@ -62,7 +62,7 @@ class SuggestionsScreen extends ConsumerWidget {
       children: templates.map((tpl) {
         final challenge = Challenge(
           id: tpl.id,
-          userId: ref.read(currentUserProvider)?.uid ?? '',
+          userId: ref.read(currentUserProvider)?.id ?? '',
           title: tpl.title,
           description: tpl.description,
           category: objective,

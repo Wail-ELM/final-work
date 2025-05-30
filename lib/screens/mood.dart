@@ -67,7 +67,7 @@ class _MoodScreenState extends ConsumerState<MoodScreen> {
                 ? () async {
                     final entry = MoodEntry(
                       id: const Uuid().v4(),
-                      userId: ref.read(currentUserProvider)?.uid ?? '',
+                      userId: ref.read(currentUserProvider)?.id ?? '',
                       moodValue: _selectedMood! + 1,
                       note: _noteController.text.isEmpty
                           ? null

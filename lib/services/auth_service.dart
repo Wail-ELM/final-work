@@ -15,7 +15,7 @@ class AuthService {
       _supabase.auth.onAuthStateChange.map((event) => event.session);
 
   // Utilisateur actuel
-  GoTrueUser? get currentUser => _supabase.auth.currentUser;
+  User? get currentUser => _supabase.auth.currentUser;
 
   // Inscription avec email/mot de passe
   Future<AuthResponse> signUp({
@@ -68,10 +68,25 @@ class AuthService {
   // Connexion avec Google
   Future<AuthResponse> signInWithGoogle() async {
     try {
-      return await _supabase.auth.signInWithOAuth(
-        Provider.google,
+      final response = await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
         redirectTo: 'io.supabase.socialbalans://login-callback/',
       );
+
+      // signInWithOAuth returns a bool, we need to create an AuthResponse
+      if (response) {
+        // Wait for auth state to update and get the session
+        final session = _supabase.auth.currentSession;
+        return AuthResponse(
+          session: session,
+          user: session?.user,
+        );
+      } else {
+        throw const AuthException(
+          'Failed to sign in with Google',
+          statusCode: '401',
+        );
+      }
     } catch (e) {
       throw _handleAuthError(e);
     }
@@ -151,6 +166,6 @@ final authStateProvider = StreamProvider<Session?>((ref) {
 });
 
 // Provider pour l'utilisateur actuel
-final currentUserProvider = Provider<GoTrueUser?>((ref) {
+final currentUserProvider = Provider<User?>((ref) {
   return ref.watch(authServiceProvider).currentUser;
 });

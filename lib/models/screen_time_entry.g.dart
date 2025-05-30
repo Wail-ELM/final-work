@@ -17,22 +17,31 @@ class ScreenTimeEntryAdapter extends TypeAdapter<ScreenTimeEntry> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return ScreenTimeEntry(
-      date: fields[0] as DateTime,
-      appName: fields[1] as String,
-      duration: fields[2] as Duration,
+      id: fields[0] as String,
+      userId: fields[1] as String,
+      appName: fields[2] as String,
+      duration: fields[3] as Duration,
+      date: fields[4] as DateTime,
+      createdAt: fields[5] as DateTime,
     );
   }
 
   @override
   void write(BinaryWriter writer, ScreenTimeEntry obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(6)
       ..writeByte(0)
-      ..write(obj.date)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.appName)
+      ..write(obj.userId)
       ..writeByte(2)
-      ..write(obj.duration);
+      ..write(obj.appName)
+      ..writeByte(3)
+      ..write(obj.duration)
+      ..writeByte(4)
+      ..write(obj.date)
+      ..writeByte(5)
+      ..write(obj.createdAt);
   }
 
   @override
@@ -44,4 +53,4 @@ class ScreenTimeEntryAdapter extends TypeAdapter<ScreenTimeEntry> {
       other is ScreenTimeEntryAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
-}
+} 

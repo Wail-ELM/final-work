@@ -10,6 +10,21 @@ final authStateProvider = StreamProvider<Session?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
 });
 
+// Mode démo : utilisateur de test
+final demoUserProvider = Provider<User?>((ref) {
+  // Créer un utilisateur fictif pour le mode démo
+  return User(
+    id: 'demo-user-123',
+    appMetadata: {},
+    userMetadata: {'name': 'Demo User'},
+    aud: 'authenticated',
+    createdAt: DateTime.now().toIso8601String(),
+  );
+});
+
+// Provider pour l'utilisateur actuel
 final currentUserProvider = Provider<User?>((ref) {
-  return ref.watch(authServiceProvider).currentUser;
+  // En mode démo, utiliser l'utilisateur de test
+  return ref.watch(demoUserProvider);
+  // Version normale : return ref.watch(authServiceProvider).currentUser;
 });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -24,19 +25,32 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Charger les variables d'environnement
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // En mode démo/développement, utiliser des valeurs par défaut
+    if (kDebugMode) {
+      debugPrint('Could not load .env file, using default values');
+    }
+  }
 
   try {
     // Initialiser Supabase avec les variables d'environnement
     await Supabase.initialize(
-      url: dotenv.env['SUPABASE_URL'] ?? '',
-      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
-      authCallbackUrlHostname: 'login-callback',
+      url: dotenv.env['SUPABASE_URL'] ?? 'https://demo.supabase.co',
+      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? 'demo-key',
+      authOptions: const FlutterAuthClientOptions(
+        authFlowType: AuthFlowType.pkce,
+      ),
       debug: true,
     );
-    print('Supabase initialized successfully');
+    if (kDebugMode) {
+      debugPrint('Supabase initialized successfully');
+    }
   } catch (e) {
-    print('Error initializing Supabase: $e');
+    if (kDebugMode) {
+      debugPrint('Error initializing Supabase: $e');
+    }
   }
 
   // Initialiser Hive
@@ -70,9 +84,9 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       home: authState.when(
-        data: (state) {
-          final session = state.session;
-          return session != null ? const Home() : const LoginScreen();
+        data: (session) {
+          // Mode démo : toujours aller à Home pour tester
+          return const Home(); // return session != null ? const Home() : const LoginScreen();
         },
         loading: () => const SplashScreen(),
         error: (error, stack) => ErrorScreen(error: error.toString()),
@@ -100,7 +114,7 @@ class SplashScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.8),
+              Theme.of(context).primaryColor.withValues(alpha: 0.8),
             ],
           ),
         ),
