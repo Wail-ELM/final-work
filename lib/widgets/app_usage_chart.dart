@@ -84,7 +84,6 @@ class _AppUsageChartState extends State<AppUsageChart>
                       maxY: apps.first.value.inMinutes.toDouble(),
                       barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
-                          tooltipBgColor: Colors.blueGrey,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             final app = apps[groupIndex];
                             return BarTooltipItem(
@@ -153,7 +152,7 @@ class _AppUsageChartState extends State<AppUsageChart>
                             BarChartRodData(
                               toY: app.value.inMinutes.toDouble() *
                                   _animation.value,
-                              color: _getAppColor(index).withOpacity(0.8),
+                              color: _getAppColor(index).withValues(alpha: 0.8),
                               width: 20,
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(4),
@@ -161,7 +160,7 @@ class _AppUsageChartState extends State<AppUsageChart>
                               backDrawRodData: BackgroundBarChartRodData(
                                 show: true,
                                 toY: apps.first.value.inMinutes.toDouble(),
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                               ),
                             ),
                           ],

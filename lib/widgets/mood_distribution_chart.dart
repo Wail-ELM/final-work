@@ -65,7 +65,7 @@ class MoodDistributionChart extends StatelessWidget {
   List<PieChartSectionData> _getMoodSections() {
     final moodCounts = <int, int>{};
     for (var entry in entries) {
-      final moodValue = entry.value.round();
+      final moodValue = entry.moodValue.round();
       moodCounts[moodValue] = (moodCounts[moodValue] ?? 0) + 1;
     }
 
@@ -115,9 +115,8 @@ class MoodDistributionChart extends StatelessWidget {
 
     return List.generate(sections.length, (index) {
       final section = sections[index];
-      final percentage = entries.isEmpty
-          ? 0.0
-          : section.value / entries.length * 100;
+      final percentage =
+          entries.isEmpty ? 0.0 : section.value / entries.length * 100;
 
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -155,4 +154,4 @@ class MoodDistributionChart extends StatelessWidget {
       );
     });
   }
-} 
+}

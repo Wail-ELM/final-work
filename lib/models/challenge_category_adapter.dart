@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 
 part 'challenge_category_adapter.g.dart';
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 5)
 enum ChallengeCategory {
   @HiveField(0)
   screenTime,

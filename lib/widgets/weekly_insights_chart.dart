@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/mood_entry.dart';
-import '../providers/mood_provider.dart';
 
 class WeeklyInsightsChart extends StatelessWidget {
   final List<MoodEntry> entries;
@@ -111,7 +110,6 @@ class WeeklyInsightsChart extends StatelessWidget {
           lineTouchData: LineTouchData(
             enabled: true,
             touchTooltipData: LineTouchTooltipData(
-              tooltipBgColor: Colors.blueGrey.withOpacity(0.8),
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   return LineTooltipItem(
@@ -169,7 +167,6 @@ class WeeklyInsightsChart extends StatelessWidget {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              tooltipBgColor: Colors.blueGrey.withOpacity(0.8),
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 return BarTooltipItem(
                   '${rod.toY.round()} uur',
@@ -250,16 +247,18 @@ class WeeklyInsightsChart extends StatelessWidget {
       final date = weekStart.add(Duration(days: index));
       final dayEntries = entries
           .where((e) =>
-              e.date.year == date.year &&
-              e.date.month == date.month &&
-              e.date.day == date.day)
+              e.createdAt.year == date.year &&
+              e.createdAt.month == date.month &&
+              e.createdAt.day == date.day)
           .toList();
 
       if (dayEntries.isEmpty) {
         return FlSpot(index.toDouble(), 0);
       }
 
-      final average = dayEntries.map((e) => e.value).reduce((a, b) => a + b) /
+      final average = dayEntries
+              .map((e) => e.moodValue.toDouble())
+              .reduce((a, b) => a + b) /
           dayEntries.length;
 
       return FlSpot(index.toDouble(), average);

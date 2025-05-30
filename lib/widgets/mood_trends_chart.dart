@@ -112,7 +112,6 @@ class MoodTrendsChart extends StatelessWidget {
                     lineTouchData: LineTouchData(
                       enabled: true,
                       touchTooltipData: LineTouchTooltipData(
-                        tooltipBgColor: Colors.blueGrey.withOpacity(0.8),
                         getTooltipItems: (touchedSpots) {
                           return touchedSpots.map((spot) {
                             return LineTooltipItem(
@@ -196,13 +195,15 @@ class MoodTrendsChart extends StatelessWidget {
         date = date.add(Duration(days: interval))) {
       final dayEntries = entries
           .where((e) =>
-              e.date.year == date.year &&
-              e.date.month == date.month &&
-              e.date.day == date.day)
+              e.createdAt.year == date.year &&
+              e.createdAt.month == date.month &&
+              e.createdAt.day == date.day)
           .toList();
 
       if (dayEntries.isNotEmpty) {
-        final average = dayEntries.map((e) => e.value).reduce((a, b) => a + b) /
+        final average = dayEntries
+                .map((e) => e.moodValue.toDouble())
+                .reduce((a, b) => a + b) /
             dayEntries.length;
         spots.add(FlSpot(x, average));
       }

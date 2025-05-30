@@ -46,11 +46,7 @@ class UserDataService {
     DateTime? endDate,
   }) async {
     try {
-      var query = _supabase
-          .from('mood_entries')
-          .select()
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
+      var query = _supabase.from('mood_entries').select().eq('user_id', userId);
 
       if (startDate != null) {
         query = query.gte('created_at', startDate.toIso8601String());
@@ -59,7 +55,7 @@ class UserDataService {
         query = query.lte('created_at', endDate.toIso8601String());
       }
 
-      final response = await query;
+      final response = await query.order('created_at', ascending: false);
       return response.map((json) => MoodEntry.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
@@ -125,17 +121,13 @@ class UserDataService {
     bool? isDone,
   }) async {
     try {
-      var query = _supabase
-          .from('challenges')
-          .select()
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
+      var query = _supabase.from('challenges').select().eq('user_id', userId);
 
       if (isDone != null) {
         query = query.eq('is_done', isDone);
       }
 
-      final response = await query;
+      final response = await query.order('created_at', ascending: false);
       return response.map((json) => Challenge.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);

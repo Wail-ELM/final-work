@@ -17,7 +17,7 @@ class DurationAdapter extends TypeAdapter<Duration> {
   }
 }
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 4)
 class ScreenTimeEntry extends HiveObject {
   @HiveField(0)
   final String id;

@@ -8,7 +8,7 @@ part of 'challenge_category_adapter.dart';
 
 class ChallengeCategoryAdapter extends TypeAdapter<ChallengeCategory> {
   @override
-  final int typeId = 2;
+  final int typeId = 5;
 
   @override
   ChallengeCategory read(BinaryReader reader) {

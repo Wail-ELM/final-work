@@ -8,7 +8,7 @@ part of 'screen_time_entry.dart';
 
 class ScreenTimeEntryAdapter extends TypeAdapter<ScreenTimeEntry> {
   @override
-  final int typeId = 2;
+  final int typeId = 4;
 
   @override
   ScreenTimeEntry read(BinaryReader reader) {
@@ -53,4 +53,4 @@ class ScreenTimeEntryAdapter extends TypeAdapter<ScreenTimeEntry> {
       other is ScreenTimeEntryAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
-} 
+}

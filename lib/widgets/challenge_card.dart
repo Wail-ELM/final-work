@@ -27,7 +27,8 @@ class ChallengeCard extends StatelessWidget {
           children: [
             Text(challenge.title, style: t.textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text(challenge.description, style: t.textTheme.bodyMedium),
+            if (challenge.description != null)
+              Text(challenge.description!, style: t.textTheme.bodyMedium),
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
