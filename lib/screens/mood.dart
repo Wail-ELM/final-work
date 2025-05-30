@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../models/mood_entry.dart';
 import '../providers/mood_provider.dart';
+import '../providers/auth_provider.dart';
 
 class MoodScreen extends ConsumerStatefulWidget {
-  const MoodScreen({Key? key}) : super(key: key);
+  const MoodScreen({super.key});
 
   @override
   ConsumerState<MoodScreen> createState() => _MoodScreenState();
@@ -66,12 +67,12 @@ class _MoodScreenState extends ConsumerState<MoodScreen> {
                 ? () async {
                     final entry = MoodEntry(
                       id: const Uuid().v4(),
-                      date: DateTime.now(),
-                      emoji: '', // visueel enkel via icône
-                      value: _selectedMood! + 1,
+                      userId: ref.read(currentUserProvider)?.uid ?? '',
+                      moodValue: _selectedMood! + 1,
                       note: _noteController.text.isEmpty
                           ? null
                           : _noteController.text,
+                      createdAt: DateTime.now(),
                     );
                     await ref.read(moodsProvider.notifier).add(entry);
                     if (!mounted) return;
@@ -94,11 +95,11 @@ class _MoodScreenState extends ConsumerState<MoodScreen> {
                 final entry = moodEntries[i];
                 return ListTile(
                   leading: Icon(
-                    _moodIcons[entry.value - 1],
+                    _moodIcons[entry.moodValue - 1],
                     color: Theme.of(context).primaryColor,
                   ),
                   title: Text(entry.note ?? '(geen opmerking)'),
-                  subtitle: Text('${entry.date.toLocal()}'.split(' ')[0]),
+                  subtitle: Text('${entry.createdAt.toLocal()}'.split(' ')[0]),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () =>

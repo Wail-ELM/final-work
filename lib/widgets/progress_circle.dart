@@ -39,7 +39,7 @@
 
     @override
     void paint(Canvas canvas, Size size) {
-      final stroke = 8.0;
+      const stroke = 8.0;
       final radius = (size.width - stroke) / 2;
       final center = Offset(size.width / 2, size.height / 2);
 

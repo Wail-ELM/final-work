@@ -40,16 +40,16 @@ class ChallengeNotifier extends StateNotifier<Challenge> {
   final Box<Challenge> _box;
 
   Future<void> toggleDone() async {
-    state.isDone = !state.isDone;
-    await _box.put(state.id, state);
-    state = state;
+    final updatedChallenge = state.copyWith(isDone: !state.isDone);
+    await _box.put(updatedChallenge.id, updatedChallenge);
+    state = updatedChallenge;
   }
 
   Future<void> markDone() async {
     if (!state.isDone) {
-      state.isDone = true;
-      await _box.put(state.id, state);
-      state = state;
+      final updatedChallenge = state.copyWith(isDone: true);
+      await _box.put(updatedChallenge.id, updatedChallenge);
+      state = updatedChallenge;
     }
   }
 }

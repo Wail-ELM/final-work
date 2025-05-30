@@ -5,16 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/challenge.dart';
 import '../models/challenge_category_adapter.dart';
-import '../data/challenge_templates.dart';
 import '../providers/user_objective_provider.dart';
 import '../providers/suggestion_provider.dart';
 import '../providers/challenge_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/challenge_card.dart';
 
 /// Scherm waarin de gebruiker eerst een doel kiest,
 /// en vervolgens passende challenges kan toevoegen.
 class SuggestionsScreen extends ConsumerWidget {
-  const SuggestionsScreen({Key? key}) : super(key: key);
+  const SuggestionsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +38,8 @@ class SuggestionsScreen extends ConsumerWidget {
             // Eén RadioListTile per categorie
             for (final cat in ChallengeCategory.values)
               RadioListTile<ChallengeCategory>(
-                title: Text(cat.name), // bijv. 'screenTime', 'focus', 'notifications'
+                title: Text(
+                    cat.name), // bijv. 'screenTime', 'focus', 'notifications'
                 value: cat,
                 groupValue: objective,
                 onChanged: (c) {
@@ -61,9 +62,13 @@ class SuggestionsScreen extends ConsumerWidget {
       children: templates.map((tpl) {
         final challenge = Challenge(
           id: tpl.id,
+          userId: ref.read(currentUserProvider)?.uid ?? '',
           title: tpl.title,
           description: tpl.description,
-          xpReward: tpl.xp,
+          category: objective,
+          startDate: DateTime.now(),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
         return ChallengeCard(
           challenge: challenge,

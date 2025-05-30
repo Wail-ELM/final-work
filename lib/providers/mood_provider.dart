@@ -59,30 +59,32 @@ class MoodStats {
 
     final todayEntries = entries
         .where((e) =>
-            e.date.year == today.year &&
-            e.date.month == today.month &&
-            e.date.day == today.day)
+            e.createdAt.year == today.year &&
+            e.createdAt.month == today.month &&
+            e.createdAt.day == today.day)
         .toList();
 
     final lastWeekEntries = entries
-        .where((e) => e.date.isAfter(lastWeek) && e.date.isBefore(today))
+        .where(
+            (e) => e.createdAt.isAfter(lastWeek) && e.createdAt.isBefore(today))
         .toList();
 
     final todayMood = todayEntries.isEmpty
         ? null
-        : (todayEntries.map((e) => e.value).reduce((a, b) => a + b) /
+        : (todayEntries.map((e) => e.moodValue).reduce((a, b) => a + b) /
                 todayEntries.length)
             .toDouble();
 
     final lastWeekAverage = lastWeekEntries.isEmpty
         ? 0.0
-        : (lastWeekEntries.map((e) => e.value).reduce((a, b) => a + b) /
+        : (lastWeekEntries.map((e) => e.moodValue).reduce((a, b) => a + b) /
                 lastWeekEntries.length)
             .toDouble();
 
     final averageMood = entries.isEmpty
         ? 0.0
-        : (entries.map((e) => e.value).reduce((a, b) => a + b) / entries.length)
+        : (entries.map((e) => e.moodValue).reduce((a, b) => a + b) /
+                entries.length)
             .toDouble();
 
     return MoodStats(

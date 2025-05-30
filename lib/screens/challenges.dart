@@ -4,7 +4,7 @@ import '../widgets/challenge_card.dart';
 import '../providers/challenge_provider.dart';
 
 class ChallengesScreen extends ConsumerWidget {
-  const ChallengesScreen({Key? key}) : super(key: key);
+  const ChallengesScreen({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final all = ref.watch(allChallengesProvider);

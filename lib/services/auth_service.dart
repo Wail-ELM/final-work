@@ -133,7 +133,7 @@ class AuthService {
     if (error is AuthException) {
       return error;
     }
-    return AuthException(
+    return const AuthException(
       'Er is een onverwachte fout opgetreden',
       statusCode: '500',
     );

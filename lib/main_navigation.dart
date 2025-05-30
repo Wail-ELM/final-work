@@ -7,7 +7,7 @@ import 'screens/journal.dart';
 import 'screens/stats.dart';
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({Key? key}) : super(key: key);
+  const MainNavigation({super.key});
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();

@@ -57,10 +57,10 @@ class WeeklyInsightsChart extends StatelessWidget {
           ),
           titlesData: FlTitlesData(
             show: true,
-            rightTitles: AxisTitles(
+            rightTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
-            topTitles: AxisTitles(
+            topTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
             bottomTitles: AxisTitles(
@@ -115,7 +115,7 @@ class WeeklyInsightsChart extends StatelessWidget {
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   return LineTooltipItem(
-                    '${spot.y.toStringAsFixed(1)}',
+                    spot.y.toStringAsFixed(1),
                     const TextStyle(color: Colors.white),
                   );
                 }).toList();
@@ -217,10 +217,10 @@ class WeeklyInsightsChart extends StatelessWidget {
                 },
               ),
             ),
-            topTitles: AxisTitles(
+            topTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
-            rightTitles: AxisTitles(
+            rightTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
           ),

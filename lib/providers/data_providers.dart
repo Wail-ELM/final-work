@@ -4,11 +4,11 @@ import '../models/challenge.dart';
 import '../models/mood_entry.dart';
 
 // Box Providers
-final challengesBoxProvider = Provider<Box<Challenge>>((ref) =>
-  Hive.box<Challenge>('challenges'));
+final challengesBoxProvider =
+    Provider<Box<Challenge>>((ref) => Hive.box<Challenge>('challenges'));
 
-final moodsBoxProvider = Provider<Box<MoodEntry>>((ref) =>
-  Hive.box<MoodEntry>('moods'));
+final moodsBoxProvider =
+    Provider<Box<MoodEntry>>((ref) => Hive.box<MoodEntry>('moods'));
 
 // State Notifier pour la liste de challenges
 class ChallengesNotifier extends StateNotifier<List<Challenge>> {
@@ -16,8 +16,8 @@ class ChallengesNotifier extends StateNotifier<List<Challenge>> {
   final Box<Challenge> _box;
 
   void toggleDone(Challenge c) {
-    c.isDone = !c.isDone;
-    _box.put(c.id, c);
+    final updatedChallenge = c.copyWith(isDone: !c.isDone);
+    _box.put(updatedChallenge.id, updatedChallenge);
     state = _box.values.toList();
   }
 
@@ -27,7 +27,8 @@ class ChallengesNotifier extends StateNotifier<List<Challenge>> {
   }
 }
 
-final challengesProvider = StateNotifierProvider<ChallengesNotifier, List<Challenge>>((ref) {
+final challengesProvider =
+    StateNotifierProvider<ChallengesNotifier, List<Challenge>>((ref) {
   final box = ref.watch(challengesBoxProvider);
   return ChallengesNotifier(box);
 });
@@ -43,7 +44,8 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
   }
 }
 
-final moodsProvider = StateNotifierProvider<MoodsNotifier, List<MoodEntry>>((ref) {
+final moodsProvider =
+    StateNotifierProvider<MoodsNotifier, List<MoodEntry>>((ref) {
   final box = ref.watch(moodsBoxProvider);
   return MoodsNotifier(box);
 });

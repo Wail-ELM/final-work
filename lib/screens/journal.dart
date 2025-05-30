@@ -33,7 +33,7 @@ class JournalNotifier extends StateNotifier<List<String>> {
 }
 
 class JournalScreen extends ConsumerStatefulWidget {
-  const JournalScreen({Key? key}) : super(key: key);
+  const JournalScreen({super.key});
 
   @override
   ConsumerState<JournalScreen> createState() => _JournalScreenState();

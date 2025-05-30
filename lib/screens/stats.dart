@@ -4,7 +4,7 @@
   import '../providers/mood_provider.dart';
 
   class StatsScreen extends ConsumerWidget {
-    const StatsScreen({Key? key}) : super(key: key);
+    const StatsScreen({super.key});
     @override
     Widget build(BuildContext context, WidgetRef ref) {
       final stats = ref.watch(moodStatsProvider);

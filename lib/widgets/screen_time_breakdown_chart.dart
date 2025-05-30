@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import '../services/screen_time_service.dart';
 
 class ScreenTimeBreakdownChart extends StatelessWidget {
   final Map<String, Duration> appBreakdown;
