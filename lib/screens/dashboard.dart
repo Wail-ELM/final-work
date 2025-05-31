@@ -16,12 +16,11 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(moodStatsProvider);
-    final challenges =
-        ref
-            .watch(allChallengesProvider)
-            .where((c) => !c.isDone)
-            .take(3)
-            .toList();
+    final challenges = ref
+        .watch(allChallengesProvider)
+        .where((c) => !c.isDone)
+        .take(3)
+        .toList();
     final userStreak = ref.watch(userStreakProvider);
     final screenTime = ref.watch(screenTimeProvider);
     final dailyObjective = ref.watch(dailyObjectiveProvider);
@@ -166,17 +165,18 @@ class DashboardScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
+                SizedBox(
+                  width: 120,
                   child: ProgressCircle(
                     percentage:
                         stats.count == 0 ? 0.0 : stats.averageMood / 5.0,
-                    size: 120,
-                    label:
-                        stats.count == 0
-                            ? 'Geen gegevens'
-                            : '${(stats.averageMood / 5.0 * 100).round()}%',
+                    size: 100,
+                    label: stats.count == 0
+                        ? 'Geen\ngegevens'
+                        : '${(stats.averageMood / 5.0 * 100).round()}%',
                   ),
                 ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,11 +291,8 @@ class DashboardScreen extends ConsumerWidget {
                   child: ChallengeCard(
                     challenge: c,
                     actionLabel: 'Voltooien',
-                    onAction:
-                        () =>
-                            ref
-                                .read(challengeProvider(c.id).notifier)
-                                .toggleDone(),
+                    onAction: () =>
+                        ref.read(challengeProvider(c.id).notifier).toggleDone(),
                   ),
                 ),
               ),

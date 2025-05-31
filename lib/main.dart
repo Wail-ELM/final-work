@@ -9,6 +9,7 @@ import 'theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/dashboard.dart';
 import 'screens/challenges.dart';
 import 'screens/stats.dart';
@@ -85,8 +86,8 @@ class MyApp extends ConsumerWidget {
       themeMode: ThemeMode.system,
       home: authState.when(
         data: (session) {
-          // Mode démo : toujours aller à Home pour tester
-          return const Home(); // return session != null ? const Home() : const LoginScreen();
+          // Authentification normale : vérifier si l'utilisateur est connecté
+          return session != null ? const Home() : const LoginScreen();
         },
         loading: () => const SplashScreen(),
         error: (error, stack) => ErrorScreen(error: error.toString()),
