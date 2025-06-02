@@ -556,3 +556,4 @@ class CategoryData {
 
   CategoryData(this.category, this.emoji, this.label, this.color);
 }
+ 
