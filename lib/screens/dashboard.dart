@@ -9,6 +9,8 @@ import '../models/challenge.dart';
 import '../widgets/weekly_insights_chart.dart';
 import '../screens/stats_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/mood_entry_screen.dart';
+import '../screens/challenge_creation_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -41,7 +43,7 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             _buildHeader(context, userStreak, screenTime),
             const SizedBox(height: 24),
-            _buildMoodSection(context, stats),
+            _buildMoodSection(context, ref, stats),
             const SizedBox(height: 24),
             _buildDailyObjective(context, dailyObjective),
             const SizedBox(height: 24),
@@ -139,7 +141,8 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMoodSection(BuildContext context, MoodStats stats) {
+  Widget _buildMoodSection(
+      BuildContext context, WidgetRef ref, MoodStats stats) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -155,9 +158,18 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text("Nieuwe entry"),
-                  onPressed: () {
-                    // TODO: Navigate to mood entry
+                  label: const Text("Nouvelle entrée"),
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MoodEntryScreen(),
+                      ),
+                    );
+                    // Si une entrée a été sauvegardée, rafraîchir les données
+                    if (result == true) {
+                      ref.refresh(moodStatsProvider);
+                    }
                   },
                 ),
               ],
@@ -269,9 +281,18 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text("Nieuwe"),
-                  onPressed: () {
-                    // TODO: Navigate to new challenge
+                  label: const Text("Nouvelle"),
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChallengeCreationScreen(),
+                      ),
+                    );
+                    // Si un défi a été créé, rafraîchir les données
+                    if (result == true) {
+                      ref.refresh(allChallengesProvider);
+                    }
                   },
                 ),
               ],

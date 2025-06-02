@@ -225,6 +225,17 @@ class _HomeState extends ConsumerState<Home> {
         title: Text(_labels[_currentIndex]),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               final confirmed = await showDialog<bool>(
