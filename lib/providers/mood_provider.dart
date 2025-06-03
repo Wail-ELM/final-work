@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import '../models/mood_entry.dart';
 import '../services/user_data_service.dart';
 import '../services/auth_service.dart';
+import '../services/demo_data_service.dart';
 
 final moodsBoxProvider =
     Provider<Box<MoodEntry>>((ref) => Hive.box<MoodEntry>('moods'));
@@ -99,6 +100,61 @@ class MoodStats {
     required this.lastWeekAverage,
     required this.recentEntries,
   });
+
+  factory MoodStats.fromEntries(List<MoodEntry> entries) {
+    if (entries.isEmpty) {
+      return MoodStats(
+        count: 0,
+        averageMood: 0.0,
+        todayMood: null,
+        lastWeekAverage: 0.0,
+        recentEntries: [],
+      );
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final lastWeek = now.subtract(const Duration(days: 7));
+
+    // Entrées récentes (30 derniers jours)
+    final recentEntries = entries.where((entry) {
+      return entry.createdAt.isAfter(now.subtract(const Duration(days: 30)));
+    }).toList();
+
+    // Moyenne générale
+    final averageMood = entries.isEmpty
+        ? 0.0
+        : entries.map((e) => e.moodValue).reduce((a, b) => a + b) /
+            entries.length;
+
+    // Mood d'aujourd'hui
+    final todayEntries = entries.where((entry) {
+      final entryDate = DateTime(
+          entry.createdAt.year, entry.createdAt.month, entry.createdAt.day);
+      return entryDate.isAtSameMomentAs(today);
+    }).toList();
+    final todayMood = todayEntries.isEmpty
+        ? null
+        : todayEntries.map((e) => e.moodValue).reduce((a, b) => a + b) /
+            todayEntries.length;
+
+    // Moyenne de la semaine dernière
+    final lastWeekEntries = entries.where((entry) {
+      return entry.createdAt.isAfter(lastWeek);
+    }).toList();
+    final lastWeekAverage = lastWeekEntries.isEmpty
+        ? 0.0
+        : lastWeekEntries.map((e) => e.moodValue).reduce((a, b) => a + b) /
+            lastWeekEntries.length;
+
+    return MoodStats(
+      count: entries.length,
+      averageMood: averageMood,
+      todayMood: todayMood?.toDouble(),
+      lastWeekAverage: lastWeekAverage,
+      recentEntries: recentEntries,
+    );
+  }
 }
 
 final moodBoxProvider = Provider<Box<MoodEntry>>((ref) {
@@ -111,72 +167,70 @@ final moodEntriesProvider = StreamProvider<List<MoodEntry>>((ref) {
 });
 
 final moodStatsProvider = Provider<MoodStats>((ref) {
-  final moods = ref.watch(moodsProvider);
+  final box = Hive.box<MoodEntry>('moods');
+  final authService = ref.watch(authServiceProvider);
+  final currentUser = authService.currentUser;
 
-  if (moods.isEmpty) {
-    return MoodStats(
-      count: 0,
-      averageMood: 0,
-      todayMood: null,
-      lastWeekAverage: 0,
-      recentEntries: [],
-    );
+  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
+    final demoEntries = DemoDataService.generateDemoMoodEntries();
+    return MoodStats.fromEntries(demoEntries);
   }
 
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final weekAgo = today.subtract(const Duration(days: 7));
-  final twoWeeksAgo = today.subtract(const Duration(days: 14));
+  final entries =
+      box.values.where((entry) => entry.userId == currentUser.id).toList();
+  return MoodStats.fromEntries(entries);
+});
 
-  // Filtrer les entrées
-  final todayEntries = moods
-      .where((e) =>
-          e.createdAt.year == today.year &&
-          e.createdAt.month == today.month &&
-          e.createdAt.day == today.day)
-      .toList();
+final moodSyncProvider = FutureProvider<void>((ref) async {
+  final authService = ref.watch(authServiceProvider);
+  final currentUser = authService.currentUser;
 
-  final thisWeekEntries = moods
-      .where((e) => e.createdAt.isAfter(weekAgo) && e.createdAt.isBefore(now))
-      .toList();
+  // Pas de sync en mode démo
+  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
+    return;
+  }
 
-  final lastWeekEntries = moods
-      .where((e) =>
-          e.createdAt.isAfter(twoWeeksAgo) && e.createdAt.isBefore(weekAgo))
-      .toList();
+  try {
+    final userDataService = ref.read(userDataServiceProvider);
+    final moodEntries =
+        await userDataService.getMoodEntries(userId: currentUser.id);
 
-  // Calculer les moyennes
-  final todayMood = todayEntries.isEmpty
-      ? null
-      : todayEntries.map((e) => e.moodValue).reduce((a, b) => a + b) /
-          todayEntries.length;
+    final box = Hive.box<MoodEntry>('moods');
+    await box.clear();
 
-  final averageMood = thisWeekEntries.isEmpty
-      ? 0.0
-      : thisWeekEntries.map((e) => e.moodValue).reduce((a, b) => a + b) /
-          thisWeekEntries.length;
-
-  final lastWeekAverage = lastWeekEntries.isEmpty
-      ? 0.0
-      : lastWeekEntries.map((e) => e.moodValue).reduce((a, b) => a + b) /
-          lastWeekEntries.length;
-
-  // Les 7 dernières entrées pour le graphique
-  final recentEntries = moods.take(7).toList();
-
-  return MoodStats(
-    count: moods.length,
-    averageMood: averageMood,
-    todayMood: todayMood?.toDouble(),
-    lastWeekAverage: lastWeekAverage,
-    recentEntries: recentEntries,
-  );
+    for (final entry in moodEntries) {
+      await box.add(entry);
+    }
+  } catch (e) {
+    // En cas d'erreur, garder les données locales
+    print('Erreur lors du chargement depuis Supabase: $e');
+  }
 });
 
 final addMoodEntryProvider =
     FutureProvider.family<void, MoodEntry>((ref, entry) async {
-  final box = ref.read(moodBoxProvider);
+  final authService = ref.watch(authServiceProvider);
+  final currentUser = authService.currentUser;
+
+  // Pas d'ajout en mode démo
+  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
+    return;
+  }
+
+  final box = Hive.box<MoodEntry>('moods');
   await box.add(entry);
+
+  try {
+    final userDataService = ref.read(userDataServiceProvider);
+    await userDataService.addMoodEntry(
+      userId: entry.userId,
+      moodValue: entry.moodValue,
+      note: entry.note,
+    );
+  } catch (e) {
+    print('Erreur lors de la synchronisation avec Supabase: $e');
+    // TODO: Ajouter à une file d'attente pour retry plus tard
+  }
 });
 
 final deleteMoodEntryProvider =

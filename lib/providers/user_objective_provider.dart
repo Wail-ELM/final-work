@@ -5,6 +5,8 @@ import '../services/app_usage_service.dart';
 import '../providers/mood_provider.dart';
 import '../services/auth_service.dart';
 import '../models/mood_entry.dart';
+import '../services/demo_data_service.dart';
+import '../models/screen_time_entry.dart';
 
 // Huidige doelstelling van de gebruiker
 final userObjectiveProvider = StateProvider<ChallengeCategory?>((_) => null);
@@ -14,102 +16,129 @@ final userStreakProvider = Provider<int>((ref) {
   final authService = ref.watch(authServiceProvider);
   final currentUser = authService.currentUser;
 
-  if (currentUser == null) return 0;
+  // Mode démo
+  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
+    return 12; // Streak de démo de 12 jours
+  }
 
-  // Bereken streak gebaseerd op mood entries
-  final moodStats = ref.watch(moodStatsProvider);
-  return _calculateStreak(moodStats.recentEntries);
+  final stats = ref.watch(moodStatsProvider);
+  // Calculer le streak basé sur les mood entries consécutives
+  return _calculateStreak(stats.recentEntries);
 });
 
 // Provider voor het scherm tijd
 final screenTimeProvider = FutureProvider<Duration>((ref) async {
-  final appUsageService = AppUsageService();
-  final today = DateTime.now();
-  return await appUsageService.getTotalScreenTimeForDate(today);
+  final authService = ref.watch(authServiceProvider);
+  final currentUser = authService.currentUser;
+
+  // Mode démo
+  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
+    final demoEntries = DemoDataService.generateDemoScreenTimeEntries();
+    final today = DateTime.now();
+    final todayEntries = demoEntries.where((entry) {
+      return entry.date.year == today.year &&
+          entry.date.month == today.month &&
+          entry.date.day == today.day;
+    }).toList();
+
+    if (todayEntries.isEmpty) {
+      return const Duration(hours: 4, minutes: 30); // Valeur par défaut
+    }
+
+    return todayEntries.fold<Duration>(
+      Duration.zero,
+      (total, entry) => total + entry.duration,
+    );
+  }
+
+  try {
+    final appUsageService = AppUsageService();
+    return await appUsageService.getTotalScreenTimeForDate(DateTime.now());
+  } catch (e) {
+    // En cas d'erreur, retourner une valeur par défaut
+    return const Duration(hours: 2, minutes: 30);
+  }
 });
 
 // Provider voor het dagelijkse doel
 final dailyObjectiveProvider = FutureProvider<String>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
-  final storedObjective = prefs.getString('daily_objective');
+  final authService = ref.watch(authServiceProvider);
+  final currentUser = authService.currentUser;
 
-  if (storedObjective != null) {
-    return storedObjective;
+  // Mode démo
+  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
+    return "Verminder schermtijd tot onder 4u per dag";
   }
 
-  // Genereer objectief gebaseerd op gebruikerspatronen
+  final stats = ref.watch(moodStatsProvider);
   final screenTime = await ref.watch(screenTimeProvider.future);
-  final objectives = _generateDailyObjectives(screenTime);
 
-  // Sla het objectief op voor vandaag
-  final todayKey = DateTime.now().toIso8601String().split('T')[0];
-  final lastObjectiveDate = prefs.getString('last_objective_date');
-
-  if (lastObjectiveDate != todayKey) {
-    objectives.shuffle();
-    final newObjective = objectives.first;
-    await prefs.setString('daily_objective', newObjective);
-    await prefs.setString('last_objective_date', todayKey);
-    return newObjective;
+  // Générer un objectif basé sur les données de l'utilisateur
+  if (screenTime.inHours > 6) {
+    return "Focus op drastische vermindering schermtijd";
+  } else if (screenTime.inHours > 4) {
+    return "Verminder schermtijd met 1u per dag";
+  } else if (stats.averageMood < 3.0) {
+    return "Focus op verbetering van je stemming";
+  } else {
+    return "Handhaaf huidige goede gewoonten";
   }
-
-  return "Focus op bewust schermgebruik";
 });
 
 // Provider voor wekelijkse voortgang
 final weeklyProgressProvider = FutureProvider<double>((ref) async {
-  final appUsageService = AppUsageService();
-  final now = DateTime.now();
-  final weekStart = now.subtract(Duration(days: now.weekday - 1));
+  final authService = ref.watch(authServiceProvider);
+  final currentUser = authService.currentUser;
 
-  double totalProgress = 0.0;
-  int daysWithData = 0;
-
-  for (int i = 0; i < 7; i++) {
-    final date = weekStart.add(Duration(days: i));
-    if (date.isAfter(now)) break;
-
-    final screenTime = await appUsageService.getTotalScreenTimeForDate(date);
-    if (screenTime.inMinutes > 0) {
-      // Bereken dagelijkse voortgang (lager schermtijd = hogere score)
-      final dailyGoal = const Duration(hours: 4); // 4 uur per dag doel
-      final progress =
-          (dailyGoal.inMinutes - screenTime.inMinutes) / dailyGoal.inMinutes;
-      totalProgress += progress.clamp(0.0, 1.0);
-      daysWithData++;
-    }
+  // Mode démo - simulation d'un progrès de 75%
+  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
+    return 0.75;
   }
 
-  return daysWithData > 0 ? totalProgress / daysWithData : 0.0;
+  final stats = ref.watch(moodStatsProvider);
+  final screenTime = await ref.watch(screenTimeProvider.future);
+
+  // Calculer le progrès basé sur les métriques
+  double progress = 0.0;
+
+  // 40% basé sur la stabilité de l'humeur
+  if (stats.count > 5) {
+    progress += 0.4 * (stats.averageMood / 5.0);
+  }
+
+  // 60% basé sur le respect de l'objectif de temps d'écran
+  final targetScreenTime = 4 * 60; // 4 heures en minutes
+  final actualScreenTime = screenTime.inMinutes;
+  if (actualScreenTime <= targetScreenTime) {
+    progress += 0.6;
+  } else {
+    final overage = actualScreenTime - targetScreenTime;
+    progress += 0.6 * (1.0 - (overage / targetScreenTime)).clamp(0.0, 1.0);
+  }
+
+  return progress.clamp(0.0, 1.0);
 });
 
 // Helper functies
-int _calculateStreak(List<MoodEntry> moodEntries) {
-  if (moodEntries.isEmpty) return 0;
+int _calculateStreak(List<dynamic> entries) {
+  if (entries.isEmpty) return 0;
 
-  final now = DateTime.now();
   int streak = 0;
+  final now = DateTime.now();
 
-  // Sorteer entries op datum (nieuwste eerst)
-  final sortedEntries = moodEntries.toList()
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  for (int i = 0; i < 30; i++) {
+    final checkDate = now.subtract(Duration(days: i));
+    final hasEntryForDay = entries.any((entry) {
+      final entryDate = entry.createdAt;
+      return entryDate.year == checkDate.year &&
+          entryDate.month == checkDate.month &&
+          entryDate.day == checkDate.day;
+    });
 
-  // Check voor consecutieve dagen
-  DateTime currentDate = DateTime(now.year, now.month, now.day);
-
-  for (final entry in sortedEntries) {
-    final entryDate = DateTime(
-      entry.createdAt.year,
-      entry.createdAt.month,
-      entry.createdAt.day,
-    );
-
-    if (entryDate == currentDate) {
+    if (hasEntryForDay) {
       streak++;
-      currentDate = currentDate.subtract(const Duration(days: 1));
-    } else if (entryDate.isBefore(currentDate)) {
-      // Gap gevonden, stop streak
-      break;
+    } else {
+      break; // Streak interrompu
     }
   }
 

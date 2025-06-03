@@ -149,27 +149,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    setState(() => _isLoading = true);
-
-    try {
-      await ref.read(authServiceProvider).signInWithGoogle();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -268,7 +247,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 32),
                             SizedBox(
                               width: double.infinity,
                               height: 48,
@@ -282,36 +261,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 child: _isLoading
                                     ? const CircularProgressIndicator()
                                     : const Text('Inloggen'),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            const Row(
-                              children: [
-                                Expanded(child: Divider()),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16),
-                                  child: Text('OF'),
-                                ),
-                                Expanded(child: Divider()),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 48,
-                              child: OutlinedButton.icon(
-                                onPressed:
-                                    _isLoading ? null : _signInWithGoogle,
-                                icon: Image.asset(
-                                  'assets/images/google_logo.png',
-                                  height: 24,
-                                ),
-                                label: const Text('Inloggen met Google'),
-                                style: OutlinedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
                               ),
                             ),
                             const SizedBox(height: 24),
