@@ -14,7 +14,7 @@ class MoodEntryScreen extends ConsumerStatefulWidget {
 
 class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
     with TickerProviderStateMixin {
-  int _selectedMood = 3; // Humeur par défaut (neutre)
+  int _selectedMood = 3; // Standaard stemming (neutraal)
   final _noteController = TextEditingController();
   bool _isLoading = false;
 
@@ -24,11 +24,11 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
   late Animation<Offset> _slideAnimation;
 
   final List<MoodData> _moods = [
-    MoodData(1, '😢', 'Très triste', Colors.red),
-    MoodData(2, '😕', 'Triste', Colors.orange),
-    MoodData(3, '😐', 'Neutre', Colors.yellow),
-    MoodData(4, '😊', 'Heureux', Colors.lightGreen),
-    MoodData(5, '😄', 'Très heureux', Colors.green),
+    MoodData(1, '😢', 'Erg verdrietig', Colors.red),
+    MoodData(2, '😕', 'Verdrietig', Colors.orange),
+    MoodData(3, '😐', 'Neutraal', Colors.yellow),
+    MoodData(4, '😊', 'Blij', Colors.lightGreen),
+    MoodData(5, '😄', 'Erg blij', Colors.green),
   ];
 
   @override
@@ -69,10 +69,10 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
     try {
       final user = ref.read(authServiceProvider).currentUser;
       if (user == null) {
-        throw Exception('Utilisateur non connecté');
+        throw Exception('Gebruiker niet ingelogd');
       }
 
-      // Créer l'entrée d'humeur
+      // Maak stemming invoer aan
       final moodEntry = MoodEntry(
         id: const Uuid().v4(),
         userId: user.id,
@@ -83,7 +83,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
         createdAt: DateTime.now(),
       );
 
-      // Sauvegarder dans Supabase
+      // Opslaan in Supabase
       await ref.read(userDataServiceProvider).addMoodEntry(
             userId: user.id,
             moodValue: _selectedMood,
@@ -91,7 +91,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
           );
 
       if (mounted) {
-        // Animation de succès
+        // Succes animatie
         await _scaleController.forward();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -100,7 +100,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
               children: [
                 const Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 8),
-                Text('Humeur enregistrée ! ${_moods[_selectedMood - 1].emoji}'),
+                Text('Stemming opgeslagen! ${_moods[_selectedMood - 1].emoji}'),
               ],
             ),
             backgroundColor: Colors.green,
@@ -110,11 +110,11 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
           ),
         );
 
-        // Retourner à l'écran précédent après un délai
+        // Terug naar vorig scherm na een vertraging
         await Future.delayed(const Duration(milliseconds: 1500));
         if (mounted) {
           Navigator.pop(
-              context, true); // true indique que l'entrée a été sauvegardée
+              context, true); // true geeft aan dat de invoer is opgeslagen
         }
       }
     } catch (e) {
@@ -125,7 +125,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Erreur: $e')),
+                Expanded(child: Text('Fout: $e')),
               ],
             ),
             backgroundColor: Colors.red,
@@ -146,7 +146,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Comment vous sentez-vous ?'),
+        title: const Text('Hoe voel je je?'),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -181,7 +181,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Sélectionnez votre humeur',
+              'Selecteer je stemming',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -279,7 +279,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Humeur sélectionnée',
+                      'Gekozen stemming',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.grey[600],
                           ),
@@ -312,7 +312,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Ajouter une note (optionnel)',
+              'Voeg een notitie toe (optioneel)',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -323,8 +323,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
               maxLines: 4,
               maxLength: 200,
               decoration: InputDecoration(
-                hintText:
-                    'Décrivez ce qui influence votre humeur aujourd\'hui...',
+                hintText: 'Beschrijf wat je stemming vandaag beïnvloedt...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -369,7 +368,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
                   const Icon(Icons.save, size: 24),
                   const SizedBox(width: 8),
                   Text(
-                    'Enregistrer mon humeur',
+                    'Bewaar mijn stemming',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

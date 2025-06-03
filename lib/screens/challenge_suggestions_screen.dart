@@ -41,7 +41,7 @@ class _ChallengeSuggestionsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Défis Suggérés'),
+        title: const Text('Voorgestelde Uitdagingen'),
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -56,10 +56,10 @@ class _ChallengeSuggestionsScreenState
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Pour Vous'),
-            Tab(text: 'Temps d\'écran'),
+            Tab(text: 'Voor Jou'),
+            Tab(text: 'Schermtijd'),
             Tab(text: 'Focus'),
-            Tab(text: 'Notifications'),
+            Tab(text: 'Notificaties'),
           ],
           isScrollable: true,
         ),
@@ -82,8 +82,8 @@ class _ChallengeSuggestionsScreenState
     return suggestionsAsync.when(
       data: (suggestions) => _buildSuggestionsList(
         suggestions,
-        'Défis personnalisés pour vous',
-        'Ces défis sont recommandés en fonction de vos habitudes et de votre humeur.',
+        'Gepersonaliseerde uitdagingen voor jou',
+        'Deze uitdagingen zijn aanbevolen op basis van je gewoonten en stemming.',
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
@@ -93,12 +93,12 @@ class _ChallengeSuggestionsScreenState
             const Icon(Icons.error_outline, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
-              'Erreur lors du chargement des suggestions',
+              'Fout bij het laden van suggesties',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Vérifiez votre connexion et réessayez',
+              'Controleer je verbinding en probeer opnieuw',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -292,7 +292,7 @@ class _ChallengeSuggestionsScreenState
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${suggestion.estimatedDays} jours',
+                        '${suggestion.estimatedDays} dagen',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 14,
@@ -303,7 +303,7 @@ class _ChallengeSuggestionsScreenState
                   ElevatedButton.icon(
                     onPressed: () => _acceptChallenge(suggestion),
                     icon: const Icon(Icons.add_task, size: 18),
-                    label: const Text('Accepter'),
+                    label: const Text('Accepteren'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: categoryColor,
                       foregroundColor: Colors.white,
@@ -333,7 +333,7 @@ class _ChallengeSuggestionsScreenState
           ),
           SizedBox(height: 16),
           Text(
-            'Aucune suggestion disponible',
+            'Geen suggesties beschikbaar',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -342,7 +342,7 @@ class _ChallengeSuggestionsScreenState
           ),
           SizedBox(height: 8),
           Text(
-            'Revenez plus tard pour de nouvelles suggestions',
+            'Kom later terug voor nieuwe suggesties',
             style: TextStyle(color: Colors.grey),
           ),
         ],
@@ -426,7 +426,7 @@ class _ChallengeSuggestionsScreenState
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Description',
+                    'Beschrijving',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -438,7 +438,7 @@ class _ChallengeSuggestionsScreenState
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Pourquoi ce défi ?',
+                    'Waarom deze uitdaging?',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -460,7 +460,7 @@ class _ChallengeSuggestionsScreenState
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Conseils pour réussir',
+                    'Tips om te slagen',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -502,7 +502,7 @@ class _ChallengeSuggestionsScreenState
                         _acceptChallenge(suggestion);
                       },
                       icon: const Icon(Icons.add_task),
-                      label: const Text('Accepter ce défi'),
+                      label: const Text('Deze uitdaging accepteren'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _getCategoryColor(suggestion.category),
                         foregroundColor: Colors.white,
@@ -529,7 +529,7 @@ class _ChallengeSuggestionsScreenState
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vous devez être connecté pour accepter un défi'),
+          content: Text('Je moet ingelogd zijn om een uitdaging te accepteren'),
           backgroundColor: Colors.red,
         ),
       );
@@ -542,21 +542,22 @@ class _ChallengeSuggestionsScreenState
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Défi "${suggestion.title}" accepté avec succès !'),
+          content:
+              Text('Uitdaging "${suggestion.title}" succesvol geaccepteerd!'),
           backgroundColor: Colors.green,
           action: SnackBarAction(
-            label: 'Voir',
+            label: 'Bekijken',
             onPressed: () => Navigator.pop(context),
           ),
         ),
       );
 
-      // Optionnel : naviguer vers l'écran des challenges
+      // Optioneel: navigeren naar het uitdagingen scherm
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors de la création du défi: $e'),
+          content: Text('Fout bij het maken van de uitdaging: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -566,22 +567,22 @@ class _ChallengeSuggestionsScreenState
   String _getCategoryTitle(ChallengeCategory category) {
     switch (category) {
       case ChallengeCategory.screenTime:
-        return 'Défis Temps d\'écran';
+        return 'Schermtijd Uitdagingen';
       case ChallengeCategory.focus:
-        return 'Défis Focus';
+        return 'Focus Uitdagingen';
       case ChallengeCategory.notifications:
-        return 'Défis Notifications';
+        return 'Notificatie Uitdagingen';
     }
   }
 
   String _getCategoryDescription(ChallengeCategory category) {
     switch (category) {
       case ChallengeCategory.screenTime:
-        return 'Réduisez votre temps d\'écran et reprenez le contrôle de votre vie numérique.';
+        return 'Verminder je schermtijd en neem de controle terug over je digitale leven.';
       case ChallengeCategory.focus:
-        return 'Améliorez votre concentration et votre productivité au quotidien.';
+        return 'Verbeter je concentratie en productiviteit in het dagelijks leven.';
       case ChallengeCategory.notifications:
-        return 'Gérez vos notifications pour retrouver la tranquillité d\'esprit.';
+        return 'Beheer je notificaties om gemoedsrust terug te vinden.';
     }
   }
 
@@ -609,11 +610,11 @@ class _ChallengeSuggestionsScreenState
 
   Color _getDifficultyColor(String difficulty) {
     switch (difficulty) {
-      case 'facile':
+      case 'makkelijk':
         return Colors.green;
-      case 'moyen':
+      case 'gemiddeld':
         return Colors.orange;
-      case 'difficile':
+      case 'moeilijk':
         return Colors.red;
       default:
         return Colors.grey;

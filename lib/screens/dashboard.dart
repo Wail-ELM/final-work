@@ -186,7 +186,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text("Nouvelle entrée"),
+                  label: const Text("Nieuwe invoer"),
                   onPressed: () async {
                     final result = await Navigator.push(
                       context,
@@ -194,7 +194,7 @@ class DashboardScreen extends ConsumerWidget {
                         builder: (context) => const MoodEntryScreen(),
                       ),
                     );
-                    // Si une entrée a été sauvegardée, rafraîchir les données
+                    // Als er een invoer is opgeslagen, ververs de gegevens
                     if (result == true) {
                       ref.refresh(moodStatsProvider);
                     }
@@ -315,7 +315,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text("Nouvelle"),
+                  label: const Text("Nieuwe"),
                   onPressed: () async {
                     final result = await Navigator.push(
                       context,
@@ -323,7 +323,7 @@ class DashboardScreen extends ConsumerWidget {
                         builder: (context) => const ChallengeCreationScreen(),
                       ),
                     );
-                    // Si un défi a été créé, rafraîchir les données
+                    // Als er een uitdaging is aangemaakt, ververs de gegevens
                     if (result == true) {
                       ref.refresh(allChallengesProvider);
                     }

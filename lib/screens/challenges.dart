@@ -94,7 +94,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
         child: Column(
           children: [
             Text(
-              'Aperçu de vos défis',
+              'Overzicht van je uitdagingen',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -107,21 +107,21 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                   context,
                   Icons.flag,
                   all.length.toString(),
-                  'Total',
+                  'Totaal',
                   Colors.blue,
                 ),
                 _buildStatItem(
                   context,
                   Icons.play_circle,
                   active.length.toString(),
-                  'Actifs',
+                  'Actief',
                   Colors.orange,
                 ),
                 _buildStatItem(
                   context,
                   Icons.check_circle,
                   completed.length.toString(),
-                  'Terminés',
+                  'Voltooid',
                   Colors.green,
                 ),
                 _buildStatItem(
@@ -130,7 +130,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                   all.isEmpty
                       ? '0%'
                       : '${(completed.length / all.length * 100).round()}%',
-                  'Succès',
+                  'Succes',
                   Colors.purple,
                 ),
               ],
@@ -305,7 +305,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Terminé',
+                            'Voltooid',
                             style: TextStyle(
                               color: Colors.green[700],
                               fontSize: 12,
@@ -402,18 +402,18 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
 
     switch (type) {
       case "actifs":
-        message = "Aucun défi actif";
-        suggestion = "Créez un nouveau défi pour commencer !";
+        message = "Geen actieve uitdaging";
+        suggestion = "Maak een nieuwe uitdaging om te beginnen!";
         icon = Icons.flag_outlined;
         break;
       case "terminés":
-        message = "Aucun défi terminé";
-        suggestion = "Complétez vos défis actifs pour les voir ici";
+        message = "Geen voltooide uitdaging";
+        suggestion = "Voltooi je actieve uitdagingen om ze hier te zien";
         icon = Icons.emoji_events_outlined;
         break;
       default:
-        message = "Aucun défi créé";
-        suggestion = "Commencez votre parcours en créant un premier défi";
+        message = "Geen uitdaging aangemaakt";
+        suggestion = "Begin je reis door een eerste uitdaging aan te maken";
         icon = Icons.add_task;
     }
 
@@ -458,7 +458,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                 }
               },
               icon: const Icon(Icons.add),
-              label: const Text('Créer un défi'),
+              label: const Text('Maak een uitdaging'),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -486,17 +486,17 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
   }
 
   String _formatDuration(Challenge challenge) {
-    if (challenge.endDate == null) return 'Indéfini';
+    if (challenge.endDate == null) return 'Onbepaald';
 
     final duration = challenge.endDate!.difference(challenge.startDate).inDays;
     final remaining = challenge.endDate!.difference(DateTime.now()).inDays;
 
     if (challenge.isDone) {
-      return '$duration jours (terminé)';
+      return '$duration dagen (voltooid)';
     } else if (remaining > 0) {
-      return '$remaining jours restants';
+      return '$remaining dagen resterend';
     } else {
-      return 'Expiré';
+      return 'Verlopen';
     }
   }
 
@@ -527,11 +527,11 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
   String _getCategoryLabel(ChallengeCategory category) {
     switch (category) {
       case ChallengeCategory.screenTime:
-        return 'Temps d\'écran';
+        return 'Schermtijd';
       case ChallengeCategory.focus:
-        return 'Concentration';
+        return 'Concentratie';
       case ChallengeCategory.notifications:
-        return 'Notifications';
+        return 'Notificaties';
     }
   }
 
@@ -550,7 +550,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Commencez votre parcours !',
+                  'Begin je reis!',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -561,7 +561,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
             ),
             const SizedBox(height: 12),
             const Text(
-              'Nous vous proposons des défis personnalisés basés sur vos habitudes pour vous aider à atteindre vos objectifs.',
+              'We stellen gepersonaliseerde uitdagingen voor op basis van je gewoonten om je te helpen je doelen te bereiken.',
               style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
@@ -579,7 +579,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                       );
                     },
                     icon: const Icon(Icons.auto_awesome),
-                    label: const Text('Voir les suggestions'),
+                    label: const Text('Bekijk suggesties'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
@@ -601,7 +601,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                       }
                     },
                     icon: const Icon(Icons.add),
-                    label: const Text('Créer le mien'),
+                    label: const Text('Maak mijn eigen'),
                   ),
                 ),
               ],
@@ -644,7 +644,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
             }
           },
           icon: const Icon(Icons.add),
-          label: const Text('Nouveau défi'),
+          label: const Text('Nieuwe uitdaging'),
           backgroundColor: Theme.of(context).primaryColor,
         ),
       ],

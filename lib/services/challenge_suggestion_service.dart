@@ -14,8 +14,8 @@ class ChallengeSuggestion {
   final ChallengeCategory category;
   final int targetValue;
   final int estimatedDays;
-  final String difficulty; // 'facile', 'moyen', 'difficile'
-  final String reason; // Pourquoi ce défi est suggéré
+  final String difficulty;
+  final String reason; 
   final List<String> tips;
 
   ChallengeSuggestion({
@@ -51,122 +51,119 @@ class ChallengeSuggestionService {
   factory ChallengeSuggestionService() => _instance;
   ChallengeSuggestionService._internal();
 
-  // Challenges prédéfinis par catégorie
+  // Voorgedefinieerde uitdagingen per categorie
   final Map<ChallengeCategory, List<ChallengeSuggestion>>
       _predefinedChallenges = {
     ChallengeCategory.screenTime: [
       ChallengeSuggestion(
         id: 'screen_beginner_1',
-        title: 'Réduire le temps d\'écran de 30 minutes',
+        title: 'Verminder schermtijd met 30 minuten',
         description:
-            'Diminuez votre temps d\'écran quotidien de 30 minutes pendant une semaine',
+            'Verminder je dagelijkse schermtijd met 30 minuten gedurende een week',
         category: ChallengeCategory.screenTime,
         targetValue: 30,
         estimatedDays: 7,
-        difficulty: 'facile',
-        reason: 'Premier pas vers une utilisation plus consciente',
+        difficulty: 'makkelijk',
+        reason: 'Eerste stap naar bewuster gebruik',
         tips: [
-          'Utilisez un minuteur pour vos sessions',
-          'Remplacez 30 min d\'écran par une activité physique',
-          'Éteignez les notifications non essentielles'
+          'Gebruik een timer voor je sessies',
+          'Vervang 30 min schermtijd door fysieke activiteit',
+          'Schakel niet-essentiële notificaties uit'
         ],
       ),
       ChallengeSuggestion(
         id: 'screen_intermediate_1',
-        title: 'Dimanche détox digital',
-        description: 'Passez tous les dimanches sans réseaux sociaux',
+        title: 'Zondag digitale detox',
+        description: 'Breng elke zondag door zonder sociale media',
         category: ChallengeCategory.screenTime,
         targetValue: 4,
         estimatedDays: 28,
-        difficulty: 'moyen',
-        reason: 'Pour retrouver du temps de qualité',
+        difficulty: 'gemiddeld',
+        reason: 'Om kwaliteitstijd terug te vinden',
         tips: [
-          'Planifiez des activités alternatives',
-          'Prévenez vos proches',
-          'Gardez votre téléphone dans une autre pièce'
+          'Plan alternatieve activiteiten',
+          'Informeer je omgeving',
+          'Bewaar je telefoon in een andere kamer'
         ],
       ),
       ChallengeSuggestion(
         id: 'screen_advanced_1',
-        title: 'Mode avion après 21h',
-        description: 'Activez le mode avion chaque soir à partir de 21h',
+        title: 'Vliegtuigmodus na 21u',
+        description: 'Activeer elke avond vliegtuigmodus vanaf 21u',
         category: ChallengeCategory.screenTime,
         targetValue: 21,
         estimatedDays: 21,
-        difficulty: 'difficile',
-        reason: 'Améliorer la qualité de sommeil',
+        difficulty: 'moeilijk',
+        reason: 'Slaapkwaliteit verbeteren',
         tips: [
-          'Préparez un livre pour la soirée',
-          'Utilisez un réveil classique',
-          'Chargez votre téléphone hors de la chambre'
+          'Bereid een boek voor voor de avond',
+          'Gebruik een klassieke wekker',
+          'Laad je telefoon op buiten de slaapkamer'
         ],
       ),
     ],
     ChallengeCategory.focus: [
       ChallengeSuggestion(
         id: 'focus_beginner_1',
-        title: 'Technique Pomodoro quotidienne',
+        title: 'Dagelijkse Pomodoro techniek',
         description:
-            'Utilisez la technique Pomodoro (25min focus, 5min pause) une fois par jour',
+            'Gebruik de Pomodoro techniek (25min focus, 5min pauze) één keer per dag',
         category: ChallengeCategory.focus,
         targetValue: 1,
         estimatedDays: 14,
-        difficulty: 'facile',
-        reason: 'Développer votre capacité de concentration',
+        difficulty: 'makkelijk',
+        reason: 'Je concentratievermogen ontwikkelen',
         tips: [
-          'Commencez par une tâche simple',
-          'Éliminez toutes les distractions',
-          'Respectez strictement les temps'
+          'Begin met een eenvoudige taak',
+          'Elimineer alle afleidingen',
+          'Respecteer strikt de tijden'
         ],
       ),
       ChallengeSuggestion(
         id: 'focus_intermediate_1',
-        title: 'Deep Work de 2h quotidiennes',
-        description:
-            'Bloquez 2h par jour sans interruption pour du travail profond',
+        title: 'Dagelijks 2u Deep Work',
+        description: 'Blokkeer 2u per dag zonder onderbreking voor diep werk',
         category: ChallengeCategory.focus,
         targetValue: 2,
         estimatedDays: 21,
-        difficulty: 'moyen',
-        reason: 'Améliorer votre productivité',
+        difficulty: 'gemiddeld',
+        reason: 'Je productiviteit verbeteren',
         tips: [
-          'Choisissez votre meilleur moment de la journée',
-          'Informez votre entourage',
-          'Préparez tout le matériel nécessaire à l\'avance'
+          'Kies je beste moment van de dag',
+          'Informeer je omgeving',
+          'Bereid al het nodige materiaal op voorhand voor'
         ],
       ),
     ],
     ChallengeCategory.notifications: [
       ChallengeSuggestion(
         id: 'notif_beginner_1',
-        title: 'Mode silencieux pendant les repas',
-        description:
-            'Mettez votre téléphone en mode silencieux pendant tous les repas',
+        title: 'Stille modus tijdens maaltijden',
+        description: 'Zet je telefoon op stille modus tijdens alle maaltijden',
         category: ChallengeCategory.notifications,
         targetValue: 3,
         estimatedDays: 14,
-        difficulty: 'facile',
-        reason: 'Retrouver le plaisir des repas conscients',
+        difficulty: 'makkelijk',
+        reason: 'Het plezier van bewuste maaltijden terugvinden',
         tips: [
-          'Posez le téléphone loin de la table',
-          'Savourez vraiment votre nourriture',
-          'Engagez la conversation avec vos proches'
+          'Leg de telefoon ver van de tafel',
+          'Geniet echt van je eten',
+          'Ga het gesprek aan met je naasten'
         ],
       ),
       ChallengeSuggestion(
         id: 'notif_intermediate_1',
-        title: 'Pas de notifications le matin',
-        description:
-            'Désactivez toutes les notifications jusqu\'à 10h du matin',
+        title: 'Geen notificaties \'s ochtends',
+        description: 'Schakel alle notificaties uit tot 10u \'s ochtends',
         category: ChallengeCategory.notifications,
         targetValue: 10,
         estimatedDays: 21,
-        difficulty: 'moyen',
-        reason: 'Commencer la journée sereinement',
+        difficulty: 'gemiddeld',
+        reason: 'Sereen de dag beginnen',
         tips: [
-          'Créez une routine matinale sans téléphone',
-          'Utilisez un réveil traditionnel',
-          'Préparez votre journée la veille'
+          'Creëer een ochtendroutine zonder telefoon',
+          'Gebruik een traditionele wekker',
+          'Bereid je dag de avond ervoor voor'
         ],
       ),
     ],
@@ -180,59 +177,59 @@ class ChallengeSuggestionService {
   }) async {
     final suggestions = <ChallengeSuggestion>[];
 
-    // Analyse des données utilisateur
+    // Analyse van gebruikersgegevens
     final avgMood = moodStats.averageMood;
     final screenTimeHours = screenTime.inHours;
 
-    // Suggestions basées sur le temps d'écran
+    // Suggesties gebaseerd op schermtijd
     if (screenTimeHours > 6) {
-      suggestions.addAll(_getScreenTimeSuggestions('high'));
+      suggestions.addAll(_getScreenTimeSuggestions('hoog'));
     } else if (screenTimeHours > 3) {
-      suggestions.addAll(_getScreenTimeSuggestions('medium'));
+      suggestions.addAll(_getScreenTimeSuggestions('gemiddeld'));
     } else {
-      suggestions.addAll(_getScreenTimeSuggestions('low'));
+      suggestions.addAll(_getScreenTimeSuggestions('laag'));
     }
 
-    // Suggestions basées sur l'humeur
+    // Suggesties gebaseerd op stemming
     if (avgMood < 3.0) {
-      suggestions.addAll(_getMoodBasedSuggestions('low'));
+      suggestions.addAll(_getMoodBasedSuggestions('laag'));
     } else if (avgMood < 4.0) {
-      suggestions.addAll(_getMoodBasedSuggestions('medium'));
+      suggestions.addAll(_getMoodBasedSuggestions('gemiddeld'));
     } else {
-      suggestions.addAll(_getMoodBasedSuggestions('high'));
+      suggestions.addAll(_getMoodBasedSuggestions('hoog'));
     }
 
-    // Suggestions générales de focus et notifications
+    // Algemene focus en notificatie suggesties
     suggestions.addAll(_getFocusSuggestions());
     suggestions.addAll(_getNotificationSuggestions());
 
-    // Mélanger et limiter
+    // Mengen en beperken
     suggestions.shuffle();
     return suggestions.take(maxSuggestions).toList();
   }
 
   List<ChallengeSuggestion> _getScreenTimeSuggestions(String level) {
     switch (level) {
-      case 'high':
+      case 'hoog':
         return [
           _predefinedChallenges[ChallengeCategory.screenTime]![
-              0], // Réduction 30min
+              0], // Vermindering 30min
           _predefinedChallenges[ChallengeCategory.screenTime]![
-              1], // Dimanche détox
+              1], // Zondag detox
           _predefinedChallenges[ChallengeCategory.screenTime]![
-              2], // Mode avion 21h
+              2], // Vliegtuigmodus 21u
         ];
-      case 'medium':
+      case 'gemiddeld':
         return [
           _predefinedChallenges[ChallengeCategory.screenTime]![
-              0], // Réduction 30min
+              0], // Vermindering 30min
           _predefinedChallenges[ChallengeCategory.screenTime]![
-              1], // Dimanche détox
+              1], // Zondag detox
         ];
-      case 'low':
+      case 'laag':
         return [
           _predefinedChallenges[ChallengeCategory.screenTime]![
-              1], // Dimanche détox
+              1], // Zondag detox
         ];
       default:
         return [];
@@ -240,23 +237,23 @@ class ChallengeSuggestionService {
   }
 
   List<ChallengeSuggestion> _getMoodBasedSuggestions(String moodLevel) {
-    // Si l'humeur est basse, suggérer des défis plus doux
-    if (moodLevel == 'low') {
+    // Als de stemming laag is, zachtere uitdagingen voorstellen
+    if (moodLevel == 'laag') {
       return [
         ChallengeSuggestion(
           id: 'mood_boost_1',
-          title: 'Méditation de 5 minutes quotidienne',
+          title: 'Dagelijks 5 minuten meditatie',
           description:
-              'Prenez 5 minutes chaque jour pour méditer ou faire de la respiration consciente',
+              'Neem elke dag 5 minuten om te mediteren of bewust te ademen',
           category: ChallengeCategory.focus,
           targetValue: 5,
           estimatedDays: 14,
-          difficulty: 'facile',
-          reason: 'Améliorer votre bien-être mental',
+          difficulty: 'makkelijk',
+          reason: 'Je mentale welzijn verbeteren',
           tips: [
-            'Utilisez une app de méditation guidée',
-            'Trouvez un endroit calme',
-            'Commencez par 2-3 minutes si nécessaire'
+            'Gebruik een begeleide meditatie-app',
+            'Zoek een rustige plek',
+            'Begin met 2-3 minuten indien nodig'
           ],
         ),
       ];
@@ -293,13 +290,13 @@ class ChallengeSuggestionService {
   }
 }
 
-// Provider pour le service de suggestions
+// Provider voor de suggestieservice
 final challengeSuggestionServiceProvider =
     Provider<ChallengeSuggestionService>((ref) {
   return ChallengeSuggestionService();
 });
 
-// Provider pour les suggestions personnalisées
+// Provider voor gepersonaliseerde suggesties
 final personalizedSuggestionsProvider =
     FutureProvider<List<ChallengeSuggestion>>((ref) async {
   final authService = ref.watch(authServiceProvider);
@@ -319,7 +316,7 @@ final personalizedSuggestionsProvider =
   );
 });
 
-// Provider pour tous les challenges prédéfinis
+// Provider voor alle voorgedefinieerde uitdagingen
 final predefinedChallengesProvider = Provider<List<ChallengeSuggestion>>((ref) {
   final service = ref.watch(challengeSuggestionServiceProvider);
   return service.getAllPredefinedChallenges();

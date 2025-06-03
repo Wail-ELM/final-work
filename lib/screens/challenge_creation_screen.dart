@@ -109,7 +109,8 @@ class _ChallengeCreationScreenState
               children: [
                 const Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 8),
-                const Expanded(child: Text('Défi créé avec succès ! 🎉')),
+                const Expanded(
+                    child: Text('Uitdaging succesvol aangemaakt! 🎉')),
               ],
             ),
             backgroundColor: Colors.green,
@@ -132,7 +133,7 @@ class _ChallengeCreationScreenState
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Erreur: $e')),
+                Expanded(child: Text('Fout: $e')),
               ],
             ),
             backgroundColor: Colors.red,
@@ -153,7 +154,7 @@ class _ChallengeCreationScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Créer un nouveau défi'),
+        title: const Text('Maak een nieuwe uitdaging'),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -535,7 +536,7 @@ class _ChallengeCreationScreenState
                   const Icon(Icons.add_circle, size: 24),
                   const SizedBox(width: 8),
                   const Text(
-                    'Créer le défi',
+                    'Maak de uitdaging',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -556,4 +557,3 @@ class CategoryData {
 
   CategoryData(this.category, this.emoji, this.label, this.color);
 }
- 
