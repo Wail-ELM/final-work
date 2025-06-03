@@ -29,20 +29,11 @@ class AuthService {
         password: password,
         data: {
           'name': name,
-          'created_at': DateTime.now().toIso8601String(),
         },
       );
 
-      if (response.user != null) {
-        // Créer le profil utilisateur
-        await _supabase.from('profiles').insert({
-          'id': response.user!.id,
-          'name': name,
-          'email': email,
-          'created_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
-        });
-      }
+      // Le trigger handle_new_user() va créer automatiquement le profil
+      // Pas besoin de créer manuellement le profil ici
 
       return response;
     } catch (e) {
@@ -113,6 +104,18 @@ class AuthService {
     }
   }
 
+  // Renvoyer un email de confirmation
+  Future<void> resendConfirmationEmail(String email) async {
+    try {
+      await _supabase.auth.resend(
+        type: OtpType.signup,
+        email: email,
+      );
+    } catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
   // Mise à jour du profil
   Future<void> updateProfile({
     required String userId,
@@ -146,6 +149,14 @@ class AuthService {
   // Gestion des erreurs d'authentification
   AuthException _handleAuthError(dynamic error) {
     if (error is AuthException) {
+      // Gestion spéciale pour l'erreur de confirmation d'email
+      if (error.message.toLowerCase().contains('email_not_confirmed') ||
+          error.message.toLowerCase().contains('emailnotconfirmed')) {
+        return const AuthException(
+          'Je e-mailadres is nog niet bevestigd. Controleer je inbox en klik op de bevestigingslink, of vraag een nieuwe bevestigingsmail aan.',
+          statusCode: '400',
+        );
+      }
       return error;
     }
     return const AuthException(

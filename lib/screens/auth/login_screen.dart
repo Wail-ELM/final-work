@@ -67,16 +67,84 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Gestion spéciale pour l'erreur de confirmation d'email
+        if (e.toString().toLowerCase().contains('email_not_confirmed') ||
+            e.toString().toLowerCase().contains('emailnotconfirmed') ||
+            e.toString().toLowerCase().contains('niet bevestigd')) {
+          _showEmailConfirmationDialog();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showEmailConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('E-mail niet bevestigd'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Je e-mailadres is nog niet bevestigd. Controleer je inbox (en spam-map) voor de bevestigingslink.',
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Geen e-mail ontvangen?',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Sluiten'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _resendConfirmationEmail();
+            },
+            child: const Text('Opnieuw versturen'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _resendConfirmationEmail() async {
+    try {
+      await ref.read(authServiceProvider).resendConfirmationEmail(
+            _emailController.text.trim(),
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Bevestigingsmail opnieuw verstuurd! Controleer je inbox.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fout bij versturen: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
