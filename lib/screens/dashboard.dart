@@ -24,8 +24,9 @@ class DashboardScreen extends ConsumerWidget {
         .take(3)
         .toList();
     final userStreak = ref.watch(userStreakProvider);
-    final screenTime = ref.watch(screenTimeProvider);
-    final dailyObjective = ref.watch(dailyObjectiveProvider);
+    final screenTimeAsync = ref.watch(screenTimeProvider);
+    final dailyObjectiveAsync = ref.watch(dailyObjectiveProvider);
+    final weeklyProgressAsync = ref.watch(weeklyProgressProvider);
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -34,6 +35,8 @@ class DashboardScreen extends ConsumerWidget {
         ref.refresh(allChallengesProvider);
         ref.refresh(userStreakProvider);
         ref.refresh(screenTimeProvider);
+        ref.refresh(dailyObjectiveProvider);
+        ref.refresh(weeklyProgressProvider);
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -41,15 +44,40 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context, userStreak, screenTime),
+            screenTimeAsync.when(
+              data: (screenTime) =>
+                  _buildHeader(context, userStreak, screenTime),
+              loading: () => _buildHeader(
+                  context, userStreak, const Duration(hours: 2, minutes: 30)),
+              error: (_, __) =>
+                  _buildHeader(context, userStreak, Duration.zero),
+            ),
             const SizedBox(height: 24),
             _buildMoodSection(context, ref, stats),
             const SizedBox(height: 24),
-            _buildDailyObjective(context, dailyObjective),
+            dailyObjectiveAsync.when(
+              data: (objective) => weeklyProgressAsync.when(
+                data: (progress) =>
+                    _buildDailyObjective(context, objective, progress),
+                loading: () => _buildDailyObjective(context, objective, 0.0),
+                error: (_, __) => _buildDailyObjective(context, objective, 0.0),
+              ),
+              loading: () => _buildDailyObjective(
+                  context, "Focus op bewust schermgebruik", 0.0),
+              error: (_, __) => _buildDailyObjective(
+                  context, "Focus op bewust schermgebruik", 0.0),
+            ),
             const SizedBox(height: 24),
             _buildActiveChallenges(context, ref, challenges),
             const SizedBox(height: 24),
-            _buildWeeklyInsights(context, ref, stats),
+            screenTimeAsync.when(
+              data: (screenTime) =>
+                  _buildWeeklyInsights(context, ref, stats, screenTime),
+              loading: () => _buildWeeklyInsights(
+                  context, ref, stats, const Duration(hours: 2, minutes: 30)),
+              error: (_, __) =>
+                  _buildWeeklyInsights(context, ref, stats, Duration.zero),
+            ),
             const SizedBox(height: 24),
             _buildMotivationalQuote(),
           ],
@@ -237,7 +265,8 @@ class DashboardScreen extends ConsumerWidget {
     return Colors.red;
   }
 
-  Widget _buildDailyObjective(BuildContext context, String objective) {
+  Widget _buildDailyObjective(
+      BuildContext context, String objective, double progress) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -252,8 +281,13 @@ class DashboardScreen extends ConsumerWidget {
             Text(objective, style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 12),
             LinearProgressIndicator(
-              value: 0.6, // TODO: Implement real progress
+              value: progress.clamp(0.0, 1.0),
               backgroundColor: Colors.grey[200],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "${(progress * 100).round()}% van weekdoel behaald",
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
@@ -327,9 +361,8 @@ class DashboardScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     MoodStats stats,
+    Duration screenTime,
   ) {
-    final screenTime = ref.watch(screenTimeProvider);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

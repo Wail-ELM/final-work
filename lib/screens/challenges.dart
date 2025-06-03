@@ -5,6 +5,7 @@ import '../providers/challenge_provider.dart';
 import '../models/challenge.dart';
 import '../models/challenge_category_adapter.dart';
 import 'challenge_creation_screen.dart';
+import 'challenge_suggestions_screen.dart';
 
 class ChallengesScreen extends ConsumerStatefulWidget {
   const ChallengesScreen({super.key});
@@ -52,6 +53,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
         child: Column(
           children: [
             _buildStats(all, activeChallenges, completedChallenges),
+            if (all.isEmpty) _buildQuickSuggestions(),
             _buildTabBar(),
             Expanded(
               child: TabBarView(
@@ -66,22 +68,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ChallengeCreationScreen(),
-            ),
-          );
-          if (result == true) {
-            ref.refresh(allChallengesProvider);
-          }
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Nouveau défi'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
+      floatingActionButton: _buildFloatingActionButtons(),
     );
   }
 
@@ -546,5 +533,121 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
       case ChallengeCategory.notifications:
         return 'Notifications';
     }
+  }
+
+  Widget _buildQuickSuggestions() {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Commencez votre parcours !',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Nous vous proposons des défis personnalisés basés sur vos habitudes pour vous aider à atteindre vos objectifs.',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const ChallengeSuggestionsScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text('Voir les suggestions'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ChallengeCreationScreen(),
+                        ),
+                      );
+                      if (result == true) {
+                        ref.refresh(allChallengesProvider);
+                      }
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Créer le mien'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButtons() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        FloatingActionButton(
+          heroTag: "suggestions",
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ChallengeSuggestionsScreen(),
+              ),
+            );
+          },
+          backgroundColor: Colors.orange,
+          child: const Icon(Icons.auto_awesome),
+        ),
+        const SizedBox(height: 16),
+        FloatingActionButton.extended(
+          heroTag: "create",
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ChallengeCreationScreen(),
+              ),
+            );
+            if (result == true) {
+              ref.refresh(allChallengesProvider);
+            }
+          },
+          icon: const Icon(Icons.add),
+          label: const Text('Nouveau défi'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      ],
+    );
   }
 }

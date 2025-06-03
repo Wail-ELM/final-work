@@ -103,9 +103,19 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
           controller: _pageController,
           onPageChanged: (index) => _tabController.animateTo(index),
           children: [
-            _buildOverviewTab(stats, screenTime),
+            screenTime.when(
+              data: (duration) => _buildOverviewTab(stats, duration),
+              loading: () => _buildOverviewTab(
+                  stats, const Duration(hours: 2, minutes: 30)),
+              error: (_, __) => _buildOverviewTab(stats, Duration.zero),
+            ),
             _buildMoodTab(stats),
-            _buildScreenTimeTab(screenTime),
+            screenTime.when(
+              data: (duration) => _buildScreenTimeTab(duration),
+              loading: () =>
+                  _buildScreenTimeTab(const Duration(hours: 2, minutes: 30)),
+              error: (_, __) => _buildScreenTimeTab(Duration.zero),
+            ),
           ],
         ),
       ),
