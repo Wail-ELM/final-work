@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 final supabaseClient = Supabase.instance.client;
 
@@ -61,7 +62,8 @@ class AuthService {
     try {
       final response = await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: 'io.supabase.socialbalans://login-callback/',
+        redirectTo:
+            kIsWeb ? null : 'io.supabase.socialbalans://login-callback/',
       );
 
       // signInWithOAuth returns a bool, we need to create an AuthResponse
@@ -97,7 +99,8 @@ class AuthService {
     try {
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'io.supabase.socialbalans://reset-callback/',
+        redirectTo:
+            kIsWeb ? null : 'io.supabase.socialbalans://reset-callback/',
       );
     } catch (e) {
       throw _handleAuthError(e);
@@ -155,6 +158,15 @@ class AuthService {
         return const AuthException(
           'Je e-mailadres is nog niet bevestigd. Controleer je inbox en klik op de bevestigingslink, of vraag een nieuwe bevestigingsmail aan.',
           statusCode: '400',
+        );
+      }
+      // Gestion des liens expirés
+      if (error.message.toLowerCase().contains('otp_expired') ||
+          error.message.toLowerCase().contains('link is invalid') ||
+          error.message.toLowerCase().contains('has expired')) {
+        return const AuthException(
+          'De bevestigingslink is verlopen. Vraag een nieuwe bevestigingsmail aan.',
+          statusCode: 'otp_expired',
         );
       }
       return error;
