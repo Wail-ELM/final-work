@@ -188,8 +188,15 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
             ),
             const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: _moods.map((mood) => _buildMoodButton(mood)).toList(),
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: _moods
+                  .map((mood) => Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: _buildMoodButton(mood),
+                        ),
+                      ))
+                  .toList(),
             ),
           ],
         ),
@@ -209,11 +216,11 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        width: 60,
-        height: 60,
+        width: 54,
+        height: 54,
         decoration: BoxDecoration(
           color: isSelected ? mood.color.withOpacity(0.2) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(27),
           border: Border.all(
             color: isSelected ? mood.color : Colors.grey[300]!,
             width: isSelected ? 3 : 1,
@@ -235,7 +242,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
             child: Text(
               mood.emoji,
               style: TextStyle(
-                fontSize: isSelected ? 28 : 24,
+                fontSize: isSelected ? 26 : 22,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
