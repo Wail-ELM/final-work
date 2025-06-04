@@ -15,7 +15,7 @@ class ChallengeSuggestion {
   final int targetValue;
   final int estimatedDays;
   final String difficulty;
-  final String reason; 
+  final String reason;
   final List<String> tips;
 
   ChallengeSuggestion({

@@ -4,8 +4,6 @@ import 'package:app_usage/app_usage.dart';
 import 'package:hive/hive.dart';
 import '../models/screen_time_entry.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'auth_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -18,7 +16,6 @@ class AppUsageService {
   String? _currentApp;
   DateTime? _sessionStartTime;
   final _box = Hive.box<ScreenTimeEntry>('screen_time');
-  final AuthService _authService = AuthService();
 
   Future<void> startTracking() async {
     if (_trackingTimer != null) return;
@@ -69,16 +66,9 @@ class AppUsageService {
 
   Future<void> _logAppUsage(String packageName, Duration duration) async {
     final now = DateTime.now();
-    final currentUser = _authService.currentUser;
-
-    if (currentUser == null) {
-      debugPrint('Geen gebruiker ingelogd, kan screen time niet opslaan');
-      return;
-    }
-
     final entry = ScreenTimeEntry(
       id: const Uuid().v4(),
-      userId: currentUser.id,
+      userId: '', // TODO: Get from auth service
       appName: packageName,
       duration: duration,
       date: DateTime(now.year, now.month, now.day),
@@ -90,8 +80,7 @@ class AppUsageService {
         e.date.year == entry.date.year &&
         e.date.month == entry.date.month &&
         e.date.day == entry.date.day &&
-        e.appName == entry.appName &&
-        e.userId == entry.userId);
+        e.appName == entry.appName);
 
     if (existingEntries.isNotEmpty) {
       final totalDuration = existingEntries.fold<Duration>(
@@ -114,14 +103,10 @@ class AppUsageService {
   }
 
   Future<Map<String, Duration>> getAppUsageForDate(DateTime date) async {
-    final currentUser = _authService.currentUser;
-    if (currentUser == null) return {};
-
     final entries = _box.values.where((e) =>
         e.date.year == date.year &&
         e.date.month == date.month &&
-        e.date.day == date.day &&
-        e.userId == currentUser.id);
+        e.date.day == date.day);
 
     final usage = <String, Duration>{};
     for (final entry in entries) {

@@ -96,22 +96,26 @@ class DashboardScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Welkom terug!",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Welkom terug!",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Je streak: $streak dagen",
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        "Je streak: $streak dagen",
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.settings),
@@ -156,16 +160,26 @@ class DashboardScreen extends ConsumerWidget {
     String value,
     String label,
   ) {
-    return Column(
-      children: [
-        Icon(icon, size: 24, color: Theme.of(context).primaryColor),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-      ],
+    return Flexible(
+      child: Column(
+        children: [
+          Icon(icon, size: 24, color: Theme.of(context).primaryColor),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ],
+      ),
     );
   }
 
@@ -180,25 +194,31 @@ class DashboardScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Gemiddelde stemming",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                Expanded(
+                  child: Text(
+                    "Gemiddelde stemming",
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text("Nieuwe invoer"),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MoodEntryScreen(),
-                      ),
-                    );
-                    // Als er een invoer is opgeslagen, ververs de gegevens
-                    if (result == true) {
-                      ref.refresh(moodStatsProvider);
-                    }
-                  },
+                Flexible(
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text("Nieuwe invoer"),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MoodEntryScreen(),
+                        ),
+                      );
+                      // Als er een invoer is opgeslagen, ververs de gegevens
+                      if (result == true) {
+                        ref.refresh(moodStatsProvider);
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -240,9 +260,17 @@ class DashboardScreen extends ConsumerWidget {
   Widget _buildMoodStat(String label, double value) {
     return Row(
       children: [
-        Text(label, style: const TextStyle(fontSize: 14)),
+        Flexible(
+          flex: 2,
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 14),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         const SizedBox(width: 8),
         Expanded(
+          flex: 3,
           child: LinearProgressIndicator(
             value: value / 5.0,
             backgroundColor: Colors.grey[200],
@@ -250,9 +278,13 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          "${(value / 5.0 * 100).round()}%",
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        Flexible(
+          flex: 1,
+          child: Text(
+            "${(value / 5.0 * 100).round()}%",
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
@@ -309,25 +341,31 @@ class DashboardScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Actieve uitdagingen",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                Expanded(
+                  child: Text(
+                    "Actieve uitdagingen",
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text("Nieuwe"),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ChallengeCreationScreen(),
-                      ),
-                    );
-                    // Als er een uitdaging is aangemaakt, ververs de gegevens
-                    if (result == true) {
-                      ref.refresh(allChallengesProvider);
-                    }
-                  },
+                Flexible(
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text("Nieuwe"),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ChallengeCreationScreen(),
+                        ),
+                      );
+                      // Als er een uitdaging is aangemaakt, ververs de gegevens
+                      if (result == true) {
+                        ref.refresh(allChallengesProvider);
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -372,21 +410,27 @@ class DashboardScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Wekelijkse inzichten",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                Expanded(
+                  child: Text(
+                    "Wekelijkse inzichten",
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.calendar_today),
-                  label: const Text("Details"),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const StatsScreen(),
-                      ),
-                    );
-                  },
+                Flexible(
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.calendar_today),
+                    label: const Text("Details"),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const StatsScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -425,16 +469,26 @@ class DashboardScreen extends ConsumerWidget {
     String label,
     String value,
   ) {
-    return Column(
-      children: [
-        Icon(icon, size: 20, color: Theme.of(context).primaryColor),
-        const SizedBox(height: 4),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ],
+    return Flexible(
+      child: Column(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
