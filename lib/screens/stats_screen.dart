@@ -19,112 +19,92 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _selectedPeriod = 'week';
-  final _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(_handleTabChange);
-  }
-
-  void _handleTabChange() {
-    if (_tabController.indexIsChanging) {
-      _pageController.animateToPage(
-        _tabController.index,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   @override
   void dispose() {
-    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
-    _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final stats = ref.watch(moodStatsProvider);
-    final screenTime = ref.watch(screenTimeProvider);
+    final screenTimeAsync = ref.watch(screenTimeProvider);
 
     return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              expandedHeight: 200,
-              floating: true,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                title: AnimatedOpacity(
-                  opacity: innerBoxIsScrolled ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: const Text('Statistieken'),
-                ),
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor.withOpacity(0.8),
-                      ],
-                    ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 200,
+            floating: true,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Statistieken'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor.withOpacity(0.8),
+                    ],
                   ),
-                  child: SafeArea(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        const SizedBox(height: 16),
-                        _buildPeriodSelector(),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
+                ),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const SizedBox(height: 16),
+                      _buildPeriodSelector(),
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
               ),
-              bottom: TabBar(
-                controller: _tabController,
-                tabs: const [
-                  Tab(text: 'Overzicht'),
-                  Tab(text: 'Stemming'),
-                  Tab(text: 'Schermtijd'),
-                ],
-              ),
             ),
-          ];
-        },
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (index) => _tabController.animateTo(index),
-          children: [
-            screenTime.when(
-              data: (duration) => _buildOverviewTab(stats, duration),
-              loading: () => _buildOverviewTab(
-                  stats, const Duration(hours: 2, minutes: 30)),
-              error: (_, __) => _buildOverviewTab(stats, Duration.zero),
+            bottom: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Overzicht'),
+                Tab(text: 'Stemming'),
+                Tab(text: 'Schermtijd'),
+              ],
             ),
-            _buildMoodTab(stats),
-            screenTime.when(
-              data: (duration) => _buildScreenTimeTab(duration),
-              loading: () =>
-                  _buildScreenTimeTab(const Duration(hours: 2, minutes: 30)),
-              error: (_, __) => _buildScreenTimeTab(Duration.zero),
+          ),
+          SliverFillRemaining(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                screenTimeAsync.when(
+                  data: (duration) => _buildOverviewTab(stats, duration),
+                  loading: () => _buildOverviewTab(
+                      stats, const Duration(hours: 2, minutes: 30)),
+                  error: (_, __) => _buildOverviewTab(stats, Duration.zero),
+                ),
+                _buildMoodTab(stats),
+                screenTimeAsync.when(
+                  data: (duration) => _buildScreenTimeTab(duration),
+                  loading: () => _buildScreenTimeTab(
+                      const Duration(hours: 2, minutes: 30)),
+                  error: (_, __) => _buildScreenTimeTab(Duration.zero),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildPeriodSelector() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
@@ -146,23 +126,19 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _selectedPeriod = period),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+        child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color:
                 isSelected ? Colors.white.withOpacity(0.3) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
             ),
           ),
         ),
@@ -265,36 +241,22 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  FutureBuilder<Duration>(
-                    future: AppUsageService()
-                        .getTotalScreenTimeForDate(DateTime.now()),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final totalTime = snapshot.data ?? Duration.zero;
-                      final hours = totalTime.inHours;
-                      final minutes = totalTime.inMinutes % 60;
-
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildStatItem(
-                            context,
-                            Icons.timer,
-                            '${hours}u ${minutes}m',
-                            'Totaal',
-                          ),
-                          _buildStatItem(
-                            context,
-                            Icons.phone_android,
-                            '${(totalTime.inMinutes / 60).toStringAsFixed(1)}u',
-                            'Gemiddeld',
-                          ),
-                        ],
-                      );
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildStatItem(
+                        context,
+                        Icons.timer,
+                        '${screenTime.inHours}u ${screenTime.inMinutes % 60}m',
+                        'Totaal',
+                      ),
+                      _buildStatItem(
+                        context,
+                        Icons.phone_android,
+                        '${(screenTime.inMinutes / 60).toStringAsFixed(1)}u',
+                        'Gemiddeld',
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -344,8 +306,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                  Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),

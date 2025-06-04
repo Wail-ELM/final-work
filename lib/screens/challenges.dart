@@ -44,8 +44,18 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
   @override
   Widget build(BuildContext context) {
     final all = ref.watch(allChallengesProvider);
-    final activeChallenges = all.where((c) => !c.isDone).toList();
-    final completedChallenges = all.where((c) => c.isDone).toList();
+
+    // Calculer les listes filtrées de manière optimisée
+    final activeChallenges = <Challenge>[];
+    final completedChallenges = <Challenge>[];
+
+    for (final challenge in all) {
+      if (challenge.isDone) {
+        completedChallenges.add(challenge);
+      } else {
+        activeChallenges.add(challenge);
+      }
+    }
 
     return Scaffold(
       body: FadeTransition(
@@ -362,10 +372,13 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                           : Icons.check_circle_outline,
                       color: challenge.isDone ? Colors.orange : Colors.green,
                     ),
-                    onPressed: () {
-                      ref
-                          .read(challengeProvider(challenge.id).notifier)
-                          .toggleDone();
+                    onPressed: () async {
+                      await Future.delayed(const Duration(milliseconds: 100));
+                      if (mounted) {
+                        ref
+                            .read(challengeProvider(challenge.id).notifier)
+                            .toggleDone();
+                      }
                     },
                   ),
                 ],
@@ -447,15 +460,13 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () async {
-                final result = await Navigator.push(
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ChallengeCreationScreen(),
                   ),
                 );
-                if (result == true) {
-                  ref.refresh(allChallengesProvider);
-                }
+                // Le provider se mettra à jour automatiquement
               },
               icon: const Icon(Icons.add),
               label: const Text('Maak een uitdaging'),
@@ -590,15 +601,13 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () async {
-                      final result = await Navigator.push(
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const ChallengeCreationScreen(),
                         ),
                       );
-                      if (result == true) {
-                        ref.refresh(allChallengesProvider);
-                      }
+                      // Le provider se mettra à jour automatiquement
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Maak mijn eigen'),
@@ -633,15 +642,13 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
         FloatingActionButton.extended(
           heroTag: "create",
           onPressed: () async {
-            final result = await Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => const ChallengeCreationScreen(),
               ),
             );
-            if (result == true) {
-              ref.refresh(allChallengesProvider);
-            }
+            // Le provider se mettra à jour automatiquement
           },
           icon: const Icon(Icons.add),
           label: const Text('Nieuwe uitdaging'),
