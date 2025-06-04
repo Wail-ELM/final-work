@@ -99,9 +99,9 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildChallengesList(all, "tous"),
-                  _buildChallengesList(activeChallenges, "actifs"),
-                  _buildChallengesList(completedChallenges, "terminés"),
+                  _buildChallengesList(all, "alle"),
+                  _buildChallengesList(activeChallenges, "actief"),
+                  _buildChallengesList(completedChallenges, "voltooid"),
                 ],
               ),
             ),
@@ -342,34 +342,56 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
 
   Widget _buildTabBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
           color: Theme.of(context).primaryColor,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).primaryColor.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         labelColor: Colors.white,
         unselectedLabelColor: Colors.grey[600],
-        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontSize: 12),
+        labelStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
         indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
         tabs: const [
           Tab(
-            text: 'Tous',
-            height: 32,
+            text: 'Alle',
+            height: 40,
           ),
           Tab(
-            text: 'Actifs',
-            height: 32,
+            text: 'Actief',
+            height: 40,
           ),
           Tab(
-            text: 'Terminés',
-            height: 32,
+            text: 'Voltooid',
+            height: 40,
           ),
         ],
       ),
@@ -509,7 +531,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Progression',
+                              'Voortgang',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -585,12 +607,12 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
     IconData icon;
 
     switch (type) {
-      case "actifs":
+      case "actief":
         message = "Geen actieve uitdagingen";
         suggestion = "Je actieve uitdagingen verschijnen hier";
         icon = Icons.flag_outlined;
         break;
-      case "terminés":
+      case "voltooid":
         message = "Geen voltooide uitdagingen";
         suggestion = "Voltooi uitdagingen om ze hier te zien";
         icon = Icons.emoji_events_outlined;
