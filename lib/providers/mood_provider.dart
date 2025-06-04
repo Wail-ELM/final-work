@@ -176,9 +176,21 @@ final moodStatsProvider = Provider<MoodStats>((ref) {
     return MoodStats.fromEntries(demoEntries);
   }
 
-  final entries =
-      box.values.where((entry) => entry.userId == currentUser.id).toList();
-  return MoodStats.fromEntries(entries);
+  try {
+    final entries =
+        box.values.where((entry) => entry.userId == currentUser.id).toList();
+    return MoodStats.fromEntries(entries);
+  } catch (e) {
+    // En cas d'erreur, retourner des stats vides mais valides
+    print('Erreur lors du calcul des stats d\'humeur: $e');
+    return MoodStats(
+      count: 0,
+      averageMood: 3.0, // Valeur neutre par défaut
+      todayMood: null,
+      lastWeekAverage: 3.0,
+      recentEntries: [],
+    );
+  }
 });
 
 final moodSyncProvider = FutureProvider<void>((ref) async {

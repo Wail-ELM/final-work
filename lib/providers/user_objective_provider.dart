@@ -53,9 +53,13 @@ final screenTimeProvider = FutureProvider<Duration>((ref) async {
 
   try {
     final appUsageService = AppUsageService();
-    return await appUsageService.getTotalScreenTimeForDate(DateTime.now());
+    final result =
+        await appUsageService.getTotalScreenTimeForDate(DateTime.now());
+    return result ??
+        const Duration(hours: 2, minutes: 30); // Protection contre null
   } catch (e) {
     // En cas d'erreur, retourner une valeur par défaut
+    print('Erreur lors de la récupération du temps d\'écran: $e');
     return const Duration(hours: 2, minutes: 30);
   }
 });

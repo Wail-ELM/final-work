@@ -245,7 +245,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
       crossAxisCount: 2,
       mainAxisSpacing: AppDesignSystem.space16,
       crossAxisSpacing: AppDesignSystem.space16,
-      childAspectRatio: 1.2,
+      childAspectRatio: 0.9,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
