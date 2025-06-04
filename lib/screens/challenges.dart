@@ -58,12 +58,42 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mijn Uitdagingen'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: 'Suggesties bekijken',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChallengeSuggestionsScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Nieuwe uitdaging',
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChallengeCreationScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Column(
           children: [
-            _buildStats(all, activeChallenges, completedChallenges),
-            if (all.isEmpty) _buildQuickSuggestions(),
+            _buildModernStats(all, activeChallenges, completedChallenges),
             _buildTabBar(),
             Expanded(
               child: TabBarView(
@@ -78,11 +108,12 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           ],
         ),
       ),
-      floatingActionButton: _buildFloatingActionButtons(),
+      floatingActionButton:
+          all.isEmpty ? _buildGetStartedFAB() : _buildSimpleFAB(),
     );
   }
 
-  Widget _buildStats(
+  Widget _buildModernStats(
       List<Challenge> all, List<Challenge> active, List<Challenge> completed) {
     return Card(
       margin: const EdgeInsets.all(16),
@@ -100,106 +131,246 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
             end: Alignment.bottomRight,
           ),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Text(
-              'Overzicht van je uitdagingen',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildStatItem(
-                  context,
-                  Icons.flag,
-                  all.length.toString(),
-                  'Totaal',
-                  Colors.blue,
+                Text(
+                  'Overzicht',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
-                _buildStatItem(
-                  context,
-                  Icons.play_circle,
-                  active.length.toString(),
-                  'Actief',
-                  Colors.orange,
-                ),
-                _buildStatItem(
-                  context,
-                  Icons.check_circle,
-                  completed.length.toString(),
-                  'Voltooid',
-                  Colors.green,
-                ),
-                _buildStatItem(
-                  context,
-                  Icons.percent,
-                  all.isEmpty
-                      ? '0%'
-                      : '${(completed.length / all.length * 100).round()}%',
-                  'Succes',
-                  Colors.purple,
-                ),
+                if (all.isEmpty)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.auto_awesome,
+                            size: 16, color: Colors.orange[700]),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Begin hier!',
+                          style: TextStyle(
+                            color: Colors.orange[700],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
+            const SizedBox(height: 16),
+            if (all.isEmpty)
+              _buildWelcomeSection()
+            else
+              _buildStatsGrid(all, active, completed),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatItem(BuildContext context, IconData icon, String value,
-      String label, Color color) {
+  Widget _buildWelcomeSection() {
     return Column(
       children: [
         Container(
-          width: 60,
-          height: 60,
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(30),
+            color: Colors.blue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.blue.withOpacity(0.2)),
           ),
-          child: Center(
-            child: Icon(icon, color: color, size: 28),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
+          child: Column(
+            children: [
+              Icon(
+                Icons.rocket_launch,
+                size: 48,
+                color: Theme.of(context).primaryColor,
               ),
+              const SizedBox(height: 12),
+              Text(
+                'Welkom bij je uitdagingen!',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Begin je reis naar een gezondere digitale balans',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ChallengeSuggestionsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.auto_awesome, size: 18),
+                      label: const Text('Suggesties'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ChallengeCreationScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Zelf maken'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
+  Widget _buildStatsGrid(
+      List<Challenge> all, List<Challenge> active, List<Challenge> completed) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatItem(
+            context,
+            Icons.flag,
+            all.length.toString(),
+            'Totaal',
+            Colors.blue,
+          ),
+        ),
+        Expanded(
+          child: _buildStatItem(
+            context,
+            Icons.play_circle,
+            active.length.toString(),
+            'Actief',
+            Colors.orange,
+          ),
+        ),
+        Expanded(
+          child: _buildStatItem(
+            context,
+            Icons.check_circle,
+            completed.length.toString(),
+            'Voltooid',
+            Colors.green,
+          ),
+        ),
+        Expanded(
+          child: _buildStatItem(
+            context,
+            Icons.percent,
+            all.isEmpty
+                ? '0%'
+                : '${(completed.length / all.length * 100).round()}%',
+            'Succes',
+            Colors.purple,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGetStartedFAB() {
+    return FloatingActionButton.extended(
+      onPressed: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ChallengeCreationScreen(),
+          ),
+        );
+      },
+      icon: const Icon(Icons.add),
+      label: const Text('Eerste uitdaging'),
+      backgroundColor: Theme.of(context).primaryColor,
+    );
+  }
+
+  Widget _buildSimpleFAB() {
+    return FloatingActionButton(
+      onPressed: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ChallengeCreationScreen(),
+          ),
+        );
+      },
+      child: const Icon(Icons.add),
+      backgroundColor: Theme.of(context).primaryColor,
+    );
+  }
+
   Widget _buildTabBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
           color: Theme.of(context).primaryColor,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         labelColor: Colors.white,
         unselectedLabelColor: Colors.grey[600],
+        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: const TextStyle(fontSize: 12),
+        indicatorSize: TabBarIndicatorSize.tab,
         tabs: const [
-          Tab(text: 'Tous'),
-          Tab(text: 'Actifs'),
-          Tab(text: 'Terminés'),
+          Tab(
+            text: 'Tous',
+            height: 32,
+          ),
+          Tab(
+            text: 'Actifs',
+            height: 32,
+          ),
+          Tab(
+            text: 'Terminés',
+            height: 32,
+          ),
         ],
       ),
     );
@@ -415,73 +586,59 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
 
     switch (type) {
       case "actifs":
-        message = "Geen actieve uitdaging";
-        suggestion = "Maak een nieuwe uitdaging om te beginnen!";
+        message = "Geen actieve uitdagingen";
+        suggestion = "Je actieve uitdagingen verschijnen hier";
         icon = Icons.flag_outlined;
         break;
       case "terminés":
-        message = "Geen voltooide uitdaging";
-        suggestion = "Voltooi je actieve uitdagingen om ze hier te zien";
+        message = "Geen voltooide uitdagingen";
+        suggestion = "Voltooi uitdagingen om ze hier te zien";
         icon = Icons.emoji_events_outlined;
         break;
       default:
-        message = "Geen uitdaging aangemaakt";
-        suggestion = "Begin je reis door een eerste uitdaging aan te maken";
-        icon = Icons.add_task;
+        message = "Geen uitdagingen gevonden";
+        suggestion = "Gebruik de knoppen hierboven om te beginnen";
+        icon = Icons.search_off;
     }
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            suggestion,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-          ),
-          if (type != "terminés") ...[
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChallengeCreationScreen(),
-                  ),
-                );
-                // Le provider se mettra à jour automatiquement
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Maak een uitdaging'),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 48,
+                color: Theme.of(context).primaryColor.withOpacity(0.7),
               ),
             ),
+            const SizedBox(height: 24),
+            Text(
+              message,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              suggestion,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[500],
+                  ),
+              textAlign: TextAlign.center,
+            ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -546,113 +703,33 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
     }
   }
 
-  Widget _buildQuickSuggestions() {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.auto_awesome,
-                  color: Theme.of(context).primaryColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Begin je reis!',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'We stellen gepersonaliseerde uitdagingen voor op basis van je gewoonten om je te helpen je doelen te bereiken.',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const ChallengeSuggestionsScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.auto_awesome),
-                    label: const Text('Bekijk suggesties'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ChallengeCreationScreen(),
-                        ),
-                      );
-                      // Le provider se mettra à jour automatiquement
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Maak mijn eigen'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingActionButtons() {
+  Widget _buildStatItem(BuildContext context, IconData icon, String value,
+      String label, Color color) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        FloatingActionButton(
-          heroTag: "suggestions",
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ChallengeSuggestionsScreen(),
-              ),
-            );
-          },
-          backgroundColor: Colors.orange,
-          child: const Icon(Icons.auto_awesome),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Center(
+            child: Icon(icon, color: color, size: 20),
+          ),
         ),
-        const SizedBox(height: 16),
-        FloatingActionButton.extended(
-          heroTag: "create",
-          onPressed: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ChallengeCreationScreen(),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.grey[600],
+                fontSize: 10,
               ),
-            );
-            // Le provider se mettra à jour automatiquement
-          },
-          icon: const Icon(Icons.add),
-          label: const Text('Nieuwe uitdaging'),
-          backgroundColor: Theme.of(context).primaryColor,
         ),
       ],
     );

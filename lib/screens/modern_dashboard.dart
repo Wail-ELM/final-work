@@ -362,29 +362,34 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppDesignSystem.space8),
-                    decoration: BoxDecoration(
-                      color: AppDesignSystem.success.withOpacity(0.1),
-                      borderRadius: AppDesignSystem.borderRadiusSmall,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppDesignSystem.space8),
+                      decoration: BoxDecoration(
+                        color: AppDesignSystem.success.withOpacity(0.1),
+                        borderRadius: AppDesignSystem.borderRadiusSmall,
+                      ),
+                      child: Icon(
+                        Icons.mood,
+                        color: AppDesignSystem.success,
+                        size: 24,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.mood,
-                      color: AppDesignSystem.success,
-                      size: 24,
+                    const SizedBox(width: AppDesignSystem.space12),
+                    Flexible(
+                      child: Text(
+                        'Stemming Tracker',
+                        style: AppDesignSystem.heading3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppDesignSystem.space12),
-                  Text(
-                    'Stemming Tracker',
-                    style: AppDesignSystem.heading3,
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: AppDesignSystem.space8),
               ModernButton(
                 text: 'Invoeren',
                 isPrimary: false,
@@ -442,10 +447,11 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
           flex: 2,
           child: Text(
             label,
-            style: AppDesignSystem.body2,
+            style: AppDesignSystem.body2.copyWith(fontSize: 12),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(width: AppDesignSystem.space8),
+        const SizedBox(width: AppDesignSystem.space4),
         Expanded(
           flex: 3,
           child: ClipRRect(
@@ -454,19 +460,21 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
               value: value / 5.0,
               backgroundColor: AppDesignSystem.neutral200,
               valueColor: AlwaysStoppedAnimation<Color>(_getMoodColor(value)),
-              minHeight: 8,
+              minHeight: 6,
             ),
           ),
         ),
-        const SizedBox(width: AppDesignSystem.space8),
+        const SizedBox(width: AppDesignSystem.space4),
         SizedBox(
-          width: 40,
+          width: 30,
           child: Text(
             '${(value / 5.0 * 100).round()}%',
             style: AppDesignSystem.body2.copyWith(
               fontWeight: FontWeight.w600,
+              fontSize: 10,
             ),
             textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -480,29 +488,34 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppDesignSystem.space8),
-                    decoration: BoxDecoration(
-                      color: AppDesignSystem.primaryPurple.withOpacity(0.1),
-                      borderRadius: AppDesignSystem.borderRadiusSmall,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppDesignSystem.space8),
+                      decoration: BoxDecoration(
+                        color: AppDesignSystem.primaryPurple.withOpacity(0.1),
+                        borderRadius: AppDesignSystem.borderRadiusSmall,
+                      ),
+                      child: Icon(
+                        Icons.flag_outlined,
+                        color: AppDesignSystem.primaryPurple,
+                        size: 24,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.flag_outlined,
-                      color: AppDesignSystem.primaryPurple,
-                      size: 24,
+                    const SizedBox(width: AppDesignSystem.space12),
+                    Flexible(
+                      child: Text(
+                        'Actieve Uitdagingen',
+                        style: AppDesignSystem.heading3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppDesignSystem.space12),
-                  Text(
-                    'Actieve Uitdagingen',
-                    style: AppDesignSystem.heading3,
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: AppDesignSystem.space8),
               ModernButton(
                 text: 'Nieuwe',
                 isPrimary: false,
@@ -584,29 +597,34 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppDesignSystem.space8),
-                    decoration: BoxDecoration(
-                      color: AppDesignSystem.info.withOpacity(0.1),
-                      borderRadius: AppDesignSystem.borderRadiusSmall,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppDesignSystem.space8),
+                      decoration: BoxDecoration(
+                        color: AppDesignSystem.info.withOpacity(0.1),
+                        borderRadius: AppDesignSystem.borderRadiusSmall,
+                      ),
+                      child: Icon(
+                        Icons.insights,
+                        color: AppDesignSystem.info,
+                        size: 24,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.insights,
-                      color: AppDesignSystem.info,
-                      size: 24,
+                    const SizedBox(width: AppDesignSystem.space12),
+                    Flexible(
+                      child: Text(
+                        'Wekelijkse Inzichten',
+                        style: AppDesignSystem.heading3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppDesignSystem.space12),
-                  Text(
-                    'Wekelijkse Inzichten',
-                    style: AppDesignSystem.heading3,
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: AppDesignSystem.space8),
               ModernButton(
                 text: 'Details',
                 isPrimary: false,

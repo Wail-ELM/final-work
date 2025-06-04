@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'theme.dart';
 import 'screens/auth/login_screen.dart';
@@ -11,16 +12,18 @@ import 'screens/auth/register_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/dashboard.dart';
+import 'screens/modern_dashboard.dart'; // Import du nouveau dashboard
 import 'screens/challenges.dart';
 import 'screens/stats.dart';
 import 'screens/suggestions.dart';
-import 'providers/auth_provider.dart';
+import 'services/auth_service.dart'; // Import corrigé
 
 // Hive-modellen
 import 'models/challenge.dart';
 import 'models/mood_entry.dart';
 import 'models/challenge_category_adapter.dart';
 import 'models/screen_time_entry.dart';
+import 'core/design_system.dart'; // Import du nouveau design system
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,11 +72,15 @@ Future<void> main() async {
   await Hive.openBox<MoodEntry>('moods');
   await Hive.openBox<ScreenTimeEntry>('screen_time');
 
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(
+    const ProviderScope(
+      child: SocialBalansApp(),
+    ),
+  );
 }
 
-class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+class SocialBalansApp extends ConsumerWidget {
+  const SocialBalansApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -81,52 +88,77 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp(
       title: 'Social Balans',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      debugShowCheckedModeBanner: false,
+      // 🎨 ACTIVATION DU NOUVEAU DESIGN SYSTEM MODERNE !
+      theme: AppDesignSystem.lightTheme,
+      darkTheme: AppDesignSystem.darkTheme,
       themeMode: ThemeMode.system,
       home: authState.when(
         data: (session) {
-          // Authentification normale : vérifier si l'utilisateur est connecté
-          return session != null ? const Home() : const LoginScreen();
+          return session != null ? const ModernHome() : const LoginScreen();
         },
-        loading: () => const SplashScreen(),
+        loading: () => const ModernSplashScreen(),
         error: (error, stack) => ErrorScreen(error: error.toString()),
       ),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
-        '/home': (context) => const Home(),
+        '/home': (context) => const ModernHome(),
       },
     );
   }
 }
 
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+// 🎨 NOUVEAU SPLASH SCREEN MODERNE
+class ModernSplashScreen extends StatelessWidget {
+  const ModernSplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.8),
-            ],
-          ),
+          gradient: AppDesignSystem.primaryGradient,
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              FlutterLogo(size: 100),
-              SizedBox(height: 24),
-              CircularProgressIndicator(
+              // Logo moderne avec animation
+              Container(
+                padding: const EdgeInsets.all(AppDesignSystem.space24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius:
+                      BorderRadius.circular(AppDesignSystem.radiusXLarge),
+                  boxShadow: AppDesignSystem.shadowLarge,
+                ),
+                child: const Icon(
+                  Icons.psychology_outlined,
+                  size: 64,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: AppDesignSystem.space32),
+              Text(
+                'Social Balans',
+                style: AppDesignSystem.heading1.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: AppDesignSystem.space8),
+              Text(
+                'Digitale balans voor een betere levenskwaliteit',
+                style: AppDesignSystem.body1.copyWith(
+                  color: Colors.white.withOpacity(0.8),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppDesignSystem.space48),
+              const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 3,
               ),
             ],
           ),
@@ -144,42 +176,55 @@ class ErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                color: Colors.red,
-                size: 64,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Er is een fout opgetreden',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: AppDesignSystem.primaryGradient,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppDesignSystem.space24),
+            child: Center(
+              child: ModernCard(
+                color: Colors.white,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: AppDesignSystem.error,
+                      size: 64,
                     ),
+                    const SizedBox(height: AppDesignSystem.space24),
+                    Text(
+                      'Er is een fout opgetreden',
+                      style: AppDesignSystem.heading2,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppDesignSystem.space8),
+                    Text(
+                      error,
+                      textAlign: TextAlign.center,
+                      style: AppDesignSystem.body2.copyWith(
+                        color: AppDesignSystem.neutral600,
+                      ),
+                    ),
+                    const SizedBox(height: AppDesignSystem.space32),
+                    ModernButton(
+                      text: 'Opnieuw proberen',
+                      icon: Icons.refresh,
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SocialBalansApp(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  // Recharger l'application
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MyApp()),
-                  );
-                },
-                child: const Text('Opnieuw proberen'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -187,18 +232,20 @@ class ErrorScreen extends StatelessWidget {
   }
 }
 
-class Home extends ConsumerStatefulWidget {
-  const Home({super.key});
+// 🎨 NOUVEAU HOME MODERNE AVEC DESIGN PREMIUM
+class ModernHome extends ConsumerStatefulWidget {
+  const ModernHome({super.key});
 
   @override
-  ConsumerState<Home> createState() => _HomeState();
+  ConsumerState<ModernHome> createState() => _ModernHomeState();
 }
 
-class _HomeState extends ConsumerState<Home> {
+class _ModernHomeState extends ConsumerState<ModernHome> {
   int _currentIndex = 0;
 
+  // 🚀 UTILISATION DU NOUVEAU DASHBOARD MODERNE !
   static const _screens = [
-    DashboardScreen(),
+    ModernDashboard(), // ← NOUVEAU DASHBOARD PREMIUM !
     ChallengesScreen(),
     StatsScreen(),
     SuggestionsScreen(),
@@ -212,70 +259,146 @@ class _HomeState extends ConsumerState<Home> {
   ];
 
   static const _icons = [
-    Icons.home,
-    Icons.flag,
-    Icons.pie_chart,
-    Icons.lightbulb,
+    Icons.home_outlined,
+    Icons.flag_outlined,
+    Icons.bar_chart_outlined,
+    Icons.lightbulb_outline,
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_labels[_currentIndex]),
+        title: Text(
+          _labels[_currentIndex],
+          style: AppDesignSystem.heading3,
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfileScreen(),
+          // Modern profile button
+          Container(
+            margin: const EdgeInsets.only(right: AppDesignSystem.space8),
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(AppDesignSystem.space8),
+                decoration: BoxDecoration(
+                  color: AppDesignSystem.primaryBlue.withOpacity(0.1),
+                  borderRadius: AppDesignSystem.borderRadiusSmall,
                 ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final confirmed = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Uitloggen'),
-                  content: const Text(
-                    'Weet je zeker dat je wilt uitloggen?',
+                child: Icon(
+                  Icons.person_outline,
+                  color: AppDesignSystem.primaryBlue,
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Annuleren'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Uitloggen'),
-                    ),
-                  ],
+                );
+              },
+            ),
+          ),
+          // Modern logout button
+          Container(
+            margin: const EdgeInsets.only(right: AppDesignSystem.space16),
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(AppDesignSystem.space8),
+                decoration: BoxDecoration(
+                  color: AppDesignSystem.error.withOpacity(0.1),
+                  borderRadius: AppDesignSystem.borderRadiusSmall,
                 ),
-              );
+                child: Icon(
+                  Icons.logout,
+                  color: AppDesignSystem.error,
+                ),
+              ),
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: Theme.of(context).cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppDesignSystem.borderRadiusLarge,
+                    ),
+                    title: Row(
+                      children: [
+                        Icon(Icons.logout, color: AppDesignSystem.error),
+                        const SizedBox(width: AppDesignSystem.space12),
+                        const Text('Uitloggen'),
+                      ],
+                    ),
+                    content: const Text(
+                      'Weet je zeker dat je wilt uitloggen?',
+                    ),
+                    actions: [
+                      ModernButton(
+                        text: 'Annuleren',
+                        isPrimary: false,
+                        onPressed: () => Navigator.pop(context, false),
+                      ),
+                      const SizedBox(width: AppDesignSystem.space12),
+                      ModernButton(
+                        text: 'Uitloggen',
+                        onPressed: () => Navigator.pop(context, true),
+                      ),
+                    ],
+                  ),
+                );
 
-              if (confirmed == true && mounted) {
-                await ref.read(authServiceProvider).signOut();
-              }
-            },
+                if (confirmed == true && mounted) {
+                  await ref.read(authServiceProvider).signOut();
+                }
+              },
+            ),
           ),
         ],
       ),
       body: SafeArea(child: _screens[_currentIndex]),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
-        destinations: List.generate(
-          _labels.length,
-          (index) => NavigationDestination(
-            icon: Icon(_icons[index]),
-            label: _labels[index],
+      // 🎨 NOUVELLE NAVIGATION BAR MODERNE
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(AppDesignSystem.radiusLarge),
+            topRight: Radius.circular(AppDesignSystem.radiusLarge),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() => _currentIndex = index);
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          destinations: List.generate(
+            _labels.length,
+            (index) => NavigationDestination(
+              icon: Icon(_icons[index]),
+              selectedIcon: Container(
+                padding: const EdgeInsets.all(AppDesignSystem.space8),
+                decoration: BoxDecoration(
+                  color: AppDesignSystem.primaryBlue.withOpacity(0.1),
+                  borderRadius: AppDesignSystem.borderRadiusSmall,
+                ),
+                child: Icon(
+                  _icons[index],
+                  color: AppDesignSystem.primaryBlue,
+                ),
+              ),
+              label: _labels[index],
+            ),
           ),
         ),
       ),
