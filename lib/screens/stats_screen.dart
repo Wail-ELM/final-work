@@ -41,34 +41,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 200,
-            floating: true,
             pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text('Statistieken'),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withOpacity(0.8),
-                    ],
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const SizedBox(height: 16),
-                      _buildPeriodSelector(),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            elevation: 0,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            title: const Text('Statistieken',
+                style: TextStyle(fontWeight: FontWeight.w600)),
             bottom: TabBar(
               controller: _tabController,
               tabs: const [
