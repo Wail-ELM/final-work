@@ -311,7 +311,7 @@ final personalizedSuggestionsProvider =
   return await suggestionService.getPersonalizedSuggestions(
     userId: currentUser.id,
     moodStats: moodStats,
-    screenTime: screenTime,
+    screenTime: screenTime ?? Duration.zero,
     maxSuggestions: 6,
   );
 });

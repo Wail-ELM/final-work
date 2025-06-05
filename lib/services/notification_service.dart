@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
@@ -15,6 +16,11 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  GlobalKey<NavigatorState>? _navigatorKey;
+
+  void setNavigatorKey(GlobalKey<NavigatorState> key) {
+    _navigatorKey = key;
+  }
 
   Future<void> init() async {
     tz.initializeTimeZones();
@@ -48,7 +54,6 @@ class NotificationService {
           _onDidReceiveBackgroundNotificationResponse,
     );
 
-    // Vérifier les préférences de notification
     final prefs = await SharedPreferences.getInstance();
     final notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
 
@@ -58,15 +63,21 @@ class NotificationService {
   }
 
   void _onDidReceiveNotificationResponse(NotificationResponse response) {
-    print('Notification Response: ${response.payload}');
-    // TODO: Gérer la navigation ou l'action basée sur le payload
+    print('Notification Response: Payload: ${response.payload}');
+    if (response.payload != null && response.payload!.isNotEmpty) {
+      if (_navigatorKey?.currentState != null) {
+        _navigatorKey!.currentState!.pushNamed(response.payload!);
+      } else {
+        print(
+            'NavigatorKey not set or no current state, cannot navigate from notification.');
+      }
+    }
   }
 
   @pragma('vm:entry-point')
   static void _onDidReceiveBackgroundNotificationResponse(
       NotificationResponse response) {
-    print('Background Notification Response: ${response.payload}');
-    // TODO: Gérer la navigation ou l'action basée sur le payload
+    print('Background Notification Response: Payload: ${response.payload}');
   }
 
   Future<bool> requestIOSPermissions() async {
@@ -137,9 +148,7 @@ class NotificationService {
             presentSound: true, presentBadge: true, presentAlert: true),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      // uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, // Temporairement commenté
       payload: payload,
-      // matchDateTimeComponents: DateTimeComponents.time, // Pour récurrence quotidienne (aussi commenté car lié)
     );
   }
 
@@ -152,13 +161,8 @@ class NotificationService {
   }
 
   Future<void> _scheduleDefaultNotifications() async {
-    // Rappel quotidien pour entrer son humeur
     await _scheduleDailyMoodReminder();
-
-    // Rappel pour les pauses
     await _scheduleBreakReminders();
-
-    // Rappel pour les objectifs
     await _scheduleGoalReminders();
   }
 
@@ -182,16 +186,8 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    // Planifier pour 20h chaque jour
     final now = DateTime.now();
-    var scheduledDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      20,
-      0,
-    );
-
+    var scheduledDate = DateTime(now.year, now.month, now.day, 20, 0);
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
@@ -202,6 +198,7 @@ class NotificationService {
       'Neem even de tijd om je humeur in te voeren.',
       tz.TZDateTime.from(scheduledDate, tz.local),
       details,
+      payload: '/mood-entry',
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
@@ -226,20 +223,11 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    // Planifier des rappels toutes les 2 heures entre 9h et 21h
     final now = DateTime.now();
-    var scheduledDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      9,
-      0,
-    );
-
+    var scheduledDate = DateTime(now.year, now.month, now.day, 9, 0);
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
-
     for (var i = 0; i < 7; i++) {
       final time = scheduledDate.add(Duration(hours: i * 2));
       if (time.hour < 21) {
@@ -249,6 +237,7 @@ class NotificationService {
           'Neem even de tijd om je ogen te laten rusten.',
           tz.TZDateTime.from(time, tz.local),
           details,
+          payload: '/home',
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         );
       }
@@ -275,21 +264,11 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    // Planifier un rappel hebdomadaire pour les objectifs
     final now = DateTime.now();
-    var scheduledDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      10,
-      0,
-    );
-
-    // Trouver le prochain lundi
+    var scheduledDate = DateTime(now.year, now.month, now.day, 10, 0);
     while (scheduledDate.weekday != DateTime.monday) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
-
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 7));
     }
@@ -300,6 +279,7 @@ class NotificationService {
       'Bekijk je doelen voor deze week.',
       tz.TZDateTime.from(scheduledDate, tz.local),
       details,
+      payload: '/challenges',
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
@@ -345,6 +325,25 @@ class NotificationService {
       body,
       details,
       payload: payload,
+    );
+  }
+
+  Future<void> showScreenTimeLimitNotification(
+      Duration goal, Duration actual) async {
+    final goalHours = goal.inHours;
+    final goalMinutes = goal.inMinutes % 60;
+    final actualHours = actual.inHours;
+    final actualMinutes = actual.inMinutes % 60;
+
+    final String goalText = "${goalHours}u ${goalMinutes}m";
+    final String actualText = "${actualHours}u ${actualMinutes}m";
+
+    await showSimpleNotification(
+      id: 100, // Use a unique ID for this type of notification
+      title: 'Schermtijd Limiet Bereikt',
+      body:
+          'Je hebt je dagelijkse doel van $goalText overschreden. Huidige tijd: $actualText.',
+      payload: '/stats', // Navigate to stats screen on tap
     );
   }
 }

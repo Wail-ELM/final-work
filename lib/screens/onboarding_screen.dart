@@ -178,3 +178,4 @@ class _OnboardingPage extends StatelessWidget {
     );
   }
 }
+ 

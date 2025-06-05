@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../services/app_usage_service.dart';
 
 class AppUsageChart extends StatefulWidget {
-  final DateTime date;
+  final Map<String, Duration> appUsageData;
   final int limit;
 
   const AppUsageChart({
     super.key,
-    required this.date,
+    required this.appUsageData,
     this.limit = 5,
   });
 
@@ -20,7 +19,6 @@ class _AppUsageChartState extends State<AppUsageChart>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  List<MapEntry<String, Duration>>? _cachedApps;
 
   @override
   void initState() {
@@ -33,7 +31,15 @@ class _AppUsageChartState extends State<AppUsageChart>
       parent: _controller,
       curve: Curves.easeOutCubic,
     );
-    _controller.forward();
+    _controller.forward(from: 0);
+  }
+
+  @override
+  void didUpdateWidget(covariant AppUsageChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.appUsageData != oldWidget.appUsageData) {
+      _controller.forward(from: 0);
+    }
   }
 
   @override
@@ -44,174 +50,165 @@ class _AppUsageChartState extends State<AppUsageChart>
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<MapEntry<String, Duration>>>(
-      future:
-          AppUsageService().getTopAppsForDate(widget.date, limit: widget.limit),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final sortedApps = widget.appUsageData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final topApps = sortedApps.take(widget.limit).toList();
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Fout bij laden: ${snapshot.error}',
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
-        }
+    if (topApps.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text('Geen app-gebruiksdata beschikbaar voor deze periode.'),
+        ),
+      );
+    }
 
-        final apps = snapshot.data ?? [];
-        if (apps.isEmpty) {
-          return const Center(
-            child: Text('Geen gegevens beschikbaar'),
-          );
-        }
+    final maxY =
+        topApps.isNotEmpty ? topApps.first.value.inMinutes.toDouble() : 1.0;
 
-        // Cache the apps data for smooth animations
-        _cachedApps = apps;
-
-        return Column(
-          children: [
-            SizedBox(
-              height: 200,
-              child: AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  return BarChart(
-                    BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: apps.first.value.inMinutes.toDouble(),
-                      barTouchData: BarTouchData(
-                        touchTooltipData: BarTouchTooltipData(
-                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                            final app = apps[groupIndex];
-                            return BarTooltipItem(
-                              '${app.key}\n${_formatDuration(app.value)}',
-                              const TextStyle(color: Colors.white),
-                            );
-                          },
-                        ),
-                        handleBuiltInTouches: true,
-                        touchCallback: (event, response) {
-                          if (event is FlTapUpEvent && response?.spot != null) {
-                            _showAppDetails(context,
-                                apps[response!.spot!.touchedBarGroupIndex]);
+    return Column(
+      children: [
+        SizedBox(
+          height: 200,
+          child: AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: maxY,
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final app = topApps[groupIndex];
+                        return BarTooltipItem(
+                          '${_getAppName(app.key)}\n${_formatDuration(app.value)}',
+                          const TextStyle(color: Colors.white),
+                        );
+                      },
+                    ),
+                    handleBuiltInTouches: true,
+                    touchCallback: (event, response) {
+                      if (event is FlTapUpEvent && response?.spot != null) {
+                        _showAppDetails(context,
+                            topApps[response!.spot!.touchedBarGroupIndex]);
+                      }
+                    },
+                  ),
+                  titlesData: FlTitlesData(
+                    show: true,
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          if (value < 0 || value >= topApps.length) {
+                            return const SizedBox();
                           }
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              _getAppName(topApps[value.toInt()].key),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
                         },
                       ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (value, meta) {
-                              if (value < 0 || value >= apps.length) {
-                                return const SizedBox();
-                              }
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(
-                                  _getAppName(apps[value.toInt()].key),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 40,
-                            getTitlesWidget: (value, meta) {
-                              return Text(
-                                '${value.toInt()}m',
-                                style: const TextStyle(fontSize: 10),
-                              );
-                            },
-                          ),
-                        ),
-                        topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      gridData: const FlGridData(show: false),
-                      barGroups: apps.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final app = entry.value;
-                        return BarChartGroupData(
-                          x: index,
-                          barRods: [
-                            BarChartRodData(
-                              toY: app.value.inMinutes.toDouble() *
-                                  _animation.value,
-                              color: _getAppColor(index).withOpacity(0.8),
-                              width: 20,
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(4),
-                              ),
-                              backDrawRodData: BackgroundBarChartRodData(
-                                show: true,
-                                toY: apps.first.value.inMinutes.toDouble(),
-                                color: Colors.grey.withOpacity(0.1),
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
                     ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            AnimatedOpacity(
-              opacity: _animation.value,
-              duration: const Duration(milliseconds: 500),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 8,
-                children: apps.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final app = entry.value;
-                  return InkWell(
-                    onTap: () => _showAppDetails(context, app),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: _getAppColor(index),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${_getAppName(app.key)} (${_formatDuration(app.value)})',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 40,
+                        getTitlesWidget: (value, meta) {
+                          if (value.toInt() % (maxY / 5).ceil() == 0 ||
+                              value == maxY) {
+                            return Text(
+                              '${value.toInt()}m',
+                              style: const TextStyle(fontSize: 10),
+                            );
+                          }
+                          return const SizedBox();
+                        },
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        );
-      },
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  gridData: const FlGridData(show: false),
+                  barGroups: topApps.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final app = entry.value;
+                    return BarChartGroupData(
+                      x: index,
+                      barRods: [
+                        BarChartRodData(
+                          toY:
+                              app.value.inMinutes.toDouble() * _animation.value,
+                          color: _getAppColor(index).withOpacity(0.8),
+                          width: 20,
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4)),
+                          backDrawRodData: BackgroundBarChartRodData(
+                            show: true,
+                            toY: maxY,
+                            color: Colors.grey.withOpacity(0.1),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        AnimatedOpacity(
+          opacity: _animation.value,
+          duration: const Duration(milliseconds: 500),
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: topApps.asMap().entries.map((entry) {
+              final index = entry.key;
+              final app = entry.value;
+              return InkWell(
+                onTap: () => _showAppDetails(context, app),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: _getAppColor(index),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_getAppName(app.key)} (${_formatDuration(app.value)})',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 
@@ -261,7 +258,6 @@ class _AppUsageChartState extends State<AppUsageChart>
   }
 
   String _getAppName(String packageName) {
-    // Vereenvoudigde naam van de app
     final parts = packageName.split('.');
     if (parts.length > 2) {
       return parts[parts.length - 2];
