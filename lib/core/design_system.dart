@@ -101,6 +101,7 @@ class AppDesignSystem {
   static const double radiusMedium = 12.0;
   static const double radiusLarge = 16.0;
   static const double radiusXLarge = 24.0;
+  static const double radiusFull = 999.0;
 
   static const BorderRadius borderRadiusSmall =
       BorderRadius.all(Radius.circular(radiusSmall));
@@ -402,4 +403,3 @@ class StatCard extends StatelessWidget {
     );
   }
 }
- 

@@ -6,6 +6,7 @@ class ChallengeTemplate {
   final String description;
   final int xp;
   final ChallengeCategory category;
+  final int durationInDays;
 
   const ChallengeTemplate({
     required this.id,
@@ -13,6 +14,7 @@ class ChallengeTemplate {
     required this.description,
     required this.xp,
     required this.category,
+    required this.durationInDays,
   });
 }
 
@@ -23,6 +25,7 @@ const challengeTemplates = <ChallengeTemplate>[
     description: 'Geen smartphone, tablet of computer gedurende 1 uur.',
     xp: 50,
     category: ChallengeCategory.screenTime,
+    durationInDays: 1,
   ),
   ChallengeTemplate(
     id: 'focus_25_5',
@@ -30,6 +33,7 @@ const challengeTemplates = <ChallengeTemplate>[
     description: '25 minuten geconcentreerd werken, daarna 5 minuten pauze.',
     xp: 30,
     category: ChallengeCategory.focus,
+    durationInDays: 1,
   ),
   ChallengeTemplate(
     id: 'no_notifs_evening',
@@ -37,5 +41,6 @@ const challengeTemplates = <ChallengeTemplate>[
     description: 'Schakel alle meldingen uit na 20:00 uur.',
     xp: 40,
     category: ChallengeCategory.notifications,
+    durationInDays: 7,
   ),
 ];

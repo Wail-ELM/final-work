@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io' show Platform;
+import '../services/notification_service.dart'; // Import NotificationService
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback? onDone;
@@ -36,6 +39,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       color: Colors.orange,
     ),
     _OnboardingPageData(
+      icon: Icons.notifications_active,
+      title: 'Blijf op de hoogte',
+      description:
+          'Activeer notificaties voor herinneringen, pauzes en het behalen van je doelen. Mis niets belangrijks!',
+      color: Colors.green,
+      isPermissionPage: true,
+    ),
+    _OnboardingPageData(
       icon: Icons.bar_chart,
       title: 'Inzicht & Motivatie',
       description:
@@ -44,13 +55,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
-  Future<void> _completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_done', true);
+  void _completeOnboarding() {
+    // The parent widget is now responsible for handling the completion logic.
     if (widget.onDone != null) {
       widget.onDone!();
     } else if (mounted) {
+      // Fallback navigation in case onDone is not provided.
       Navigator.of(context).pushReplacementNamed('/');
+    }
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    bool granted = false;
+    // Platform checks are not supported on the web.
+    if (!kIsWeb) {
+      if (Platform.isIOS) {
+        granted = await NotificationService().requestIOSPermissions();
+      } else {
+        // For non-iOS, non-web platforms (like Android), assume granted for the flow.
+        granted = true;
+      }
+    }
+
+    // Move to next page regardless of outcome, not to block the user.
+    if (mounted) {
+      _controller.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.ease,
+      );
     }
   }
 
@@ -102,7 +134,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: const Text('Terug'),
                     ),
                   const Spacer(),
-                  if (_currentPage < _pages.length - 1)
+                  if (_pages[_currentPage].isPermissionPage)
+                    ElevatedButton(
+                      onPressed: _requestNotificationPermission,
+                      child: const Text('Notificaties activeren'),
+                    )
+                  else if (_currentPage < _pages.length - 1)
                     ElevatedButton(
                       onPressed: () {
                         _controller.nextPage(
@@ -132,11 +169,14 @@ class _OnboardingPageData {
   final String title;
   final String description;
   final Color color;
+  final bool isPermissionPage;
+
   const _OnboardingPageData({
     required this.icon,
     required this.title,
     required this.description,
     required this.color,
+    this.isPermissionPage = false,
   });
 }
 
@@ -168,9 +208,7 @@ class _OnboardingPage extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             page.description,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.black87,
-                ),
+            style: Theme.of(context).textTheme.bodyLarge,
             textAlign: TextAlign.center,
           ),
         ],
@@ -178,4 +216,3 @@ class _OnboardingPage extends StatelessWidget {
     );
   }
 }
- 

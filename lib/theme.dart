@@ -71,6 +71,7 @@ class AppTheme {
       seedColor: const Color(0xFF6750A4),
       brightness: Brightness.dark,
     ),
+    textTheme: _textTheme,
     appBarTheme: const AppBarTheme(
       centerTitle: true,
       elevation: 0,

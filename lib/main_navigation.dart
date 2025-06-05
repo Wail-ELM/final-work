@@ -1,6 +1,6 @@
 // lib/main_navigation.dart
 import 'package:flutter/material.dart';
-import 'screens/dashboard.dart';
+import 'screens/modern_dashboard.dart';
 import 'screens/challenges.dart';
 import 'screens/mood.dart';
 import 'screens/journal.dart';
@@ -16,7 +16,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _current = 0;
   final _pages = const [
-    DashboardScreen(),
+    ModernDashboard(),
     ChallengesScreen(),
     MoodScreen(),
     JournalScreen(),

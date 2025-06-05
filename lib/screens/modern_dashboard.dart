@@ -11,7 +11,7 @@ import '../widgets/weekly_insights_chart.dart';
 import '../screens/stats_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/mood_entry_screen.dart';
-import '../screens/challenge_creation_screen.dart';
+import '../screens/suggestions.dart';
 
 class ModernDashboard extends ConsumerStatefulWidget {
   const ModernDashboard({super.key});
@@ -110,11 +110,11 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
                             loading: () => _buildStatsGrid(
                               context,
                               userStreak,
-                              const Duration(hours: 2, minutes: 30),
+                              null,
                               stats,
                             ),
                             error: (_, __) => _buildStatsGrid(
-                                context, userStreak, Duration.zero, stats),
+                                context, userStreak, null, stats),
                           ),
                           const SizedBox(height: AppDesignSystem.space32),
                           dailyObjectiveAsync.when(
@@ -143,16 +143,12 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
                           _buildModernChallenges(context, ref, challenges),
                           const SizedBox(height: AppDesignSystem.space32),
                           screenTimeAsync.when(
-                            data: (screenTime) => _buildModernInsights(
-                                context, ref, stats, screenTime),
-                            loading: () => _buildModernInsights(
-                              context,
-                              ref,
-                              stats,
-                              const Duration(hours: 2, minutes: 30),
-                            ),
-                            error: (_, __) => _buildModernInsights(
-                                context, ref, stats, Duration.zero),
+                            data: (screenTimeValue) =>
+                                _buildModernInsights(context, ref, stats),
+                            loading: () =>
+                                _buildModernInsights(context, ref, stats),
+                            error: (_, __) =>
+                                _buildModernInsights(context, ref, stats),
                           ),
                           const SizedBox(height: AppDesignSystem.space32),
                           _buildQuoteOfTheDay(),
@@ -240,7 +236,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
   }
 
   Widget _buildStatsGrid(
-      BuildContext context, int streak, Duration screenTime, MoodStats stats) {
+      BuildContext context, int streak, Duration? screenTime, MoodStats stats) {
     return GridView.count(
       crossAxisCount: 2,
       mainAxisSpacing: AppDesignSystem.space16,
@@ -251,7 +247,9 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
       children: [
         StatCard(
           title: 'Schermtijd vandaag',
-          value: '${screenTime.inHours}u ${screenTime.inMinutes % 60}m',
+          value: screenTime != null
+              ? '${screenTime.inHours}u ${screenTime.inMinutes % 60}m'
+              : 'N/A',
           icon: Icons.timer_outlined,
           color: AppDesignSystem.info,
           subtitle: 'Vandaag',
@@ -520,16 +518,13 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
                 text: 'Nieuwe',
                 isPrimary: false,
                 icon: Icons.add,
-                onPressed: () async {
-                  final result = await Navigator.push(
+                onPressed: () {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ChallengeCreationScreen(),
+                      builder: (context) => const SuggestionsScreen(),
                     ),
                   );
-                  if (result == true) {
-                    ref.refresh(allChallengesProvider);
-                  }
                 },
               ),
             ],
@@ -575,8 +570,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
                       const EdgeInsets.only(bottom: AppDesignSystem.space12),
                   child: ChallengeCard(
                     challenge: challenge,
-                    actionLabel: 'Voltooien',
-                    onAction: () => ref
+                    onToggle: () => ref
                         .read(challengeProvider(challenge.id).notifier)
                         .toggleDone(),
                   ),
@@ -590,7 +584,6 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
     BuildContext context,
     WidgetRef ref,
     MoodStats stats,
-    Duration screenTime,
   ) {
     return ModernCard(
       child: Column(
@@ -643,7 +636,6 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
           const SizedBox(height: AppDesignSystem.space20),
           WeeklyInsightsChart(
             entries: stats.recentEntries,
-            screenTime: screenTime,
           ),
         ],
       ),

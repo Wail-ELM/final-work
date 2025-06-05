@@ -5,19 +5,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/dashboard.dart';
+
 import 'screens/modern_dashboard.dart'; // Import du nouveau dashboard
 import 'screens/challenges.dart';
 import 'screens/stats.dart';
 import 'screens/suggestions.dart';
 import 'screens/onboarding_screen.dart';
-import 'services/auth_service.dart'; // Import corrigé
+import 'screens/mood_entry_screen.dart'; // Added import for MoodEntryScreen
+// Hide potentially conflicting names from the service file if they are also defined in provider files
+import 'services/auth_service.dart' hide authServiceProvider, authStateProvider;
+import 'services/notification_service.dart'; // Import du service
 
 // Hive-modellen
 import 'models/challenge.dart';
@@ -25,6 +29,25 @@ import 'models/mood_entry.dart';
 import 'models/challenge_category_adapter.dart';
 import 'models/screen_time_entry.dart';
 import 'core/design_system.dart'; // Import du nouveau design system
+
+// Import providers needed for AppUsageService start/stop
+import 'providers/auth_provider.dart'; // Provides authStateProvider
+import 'providers/user_objective_provider.dart'; // Provides appUsageServiceProvider
+import 'providers/theme_provider.dart'; // Import the new themeModeProvider
+
+// Clé globale pour le Navigator (optionnel, mais utile pour les notifs)
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Provider for App Info (version, etc.)
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
+  return await PackageInfo.fromPlatform();
+});
+
+// Provider for SharedPreferences
+final sharedPreferencesProvider =
+    FutureProvider<SharedPreferences>((ref) async {
+  return await SharedPreferences.getInstance();
+});
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,41 +96,77 @@ void main() async {
   await Hive.openBox<MoodEntry>('moods');
   await Hive.openBox<ScreenTimeEntry>('screen_time');
 
+  // Initialiser le service de notification
+  final notificationService = NotificationService();
+  await notificationService.init();
+  notificationService.setNavigatorKey(navigatorKey); // Set the navigator key
+
   runApp(const ProviderScope(child: RootDecider()));
 }
 
-class RootDecider extends StatefulWidget {
+class RootDecider extends ConsumerStatefulWidget {
   const RootDecider({super.key});
+
   @override
-  State<RootDecider> createState() => _RootDeciderState();
+  ConsumerState<RootDecider> createState() => _RootDeciderState();
 }
 
-class _RootDeciderState extends State<RootDecider> {
-  bool? _onboardingDone;
+class _RootDeciderState extends ConsumerState<RootDecider> {
+  bool? _onboardingComplete;
 
   @override
   void initState() {
     super.initState();
-    _checkOnboarding();
+    _checkOnboardingStatus();
   }
 
-  Future<void> _checkOnboarding() async {
+  Future<void> _checkOnboardingStatus() async {
     final prefs = await SharedPreferences.getInstance();
+    // Use a consistent key for checking onboarding status.
+    if (!mounted) return;
     setState(() {
-      _onboardingDone = prefs.getBool('onboarding_done') ?? false;
+      _onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+    });
+  }
+
+  void _handleOnboardingDone() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Use the same consistent key to set the onboarding status.
+    await prefs.setBool('onboarding_complete', true);
+    if (!mounted) return;
+    setState(() {
+      _onboardingComplete = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_onboardingDone == null) {
-      return const ModernSplashScreen();
+    final themeMode = ref.watch(themeModeProvider);
+
+    // Show a splash screen while checking the onboarding status.
+    if (_onboardingComplete == null) {
+      return MaterialApp(
+        theme: AppDesignSystem.lightTheme,
+        darkTheme: AppDesignSystem.darkTheme,
+        themeMode: themeMode,
+        home: const ModernSplashScreen(),
+      );
     }
-    return _onboardingDone!
-        ? const SocialBalansAppMain()
-        : OnboardingScreen(onDone: () {
-            setState(() => _onboardingDone = true);
-          });
+
+    // If onboarding is complete, show the main app.
+    if (_onboardingComplete!) {
+      return const SocialBalansAppMain();
+    }
+    // Otherwise, show the onboarding screen.
+    else {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppDesignSystem.lightTheme,
+        darkTheme: AppDesignSystem.darkTheme,
+        themeMode: themeMode,
+        home: OnboardingScreen(onDone: _handleOnboardingDone),
+      );
+    }
   }
 }
 
@@ -116,12 +175,30 @@ class SocialBalansAppMain extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
+    final themeMode = ref.watch(themeModeProvider); // Get themeMode
+
+    // Listen to authState changes (this logic is already present and correct)
+    ref.listen<AsyncValue<Session?>>(authStateProvider, (previous, next) {
+      final appUsageService = ref.read(appUsageServiceProvider);
+      final bool wasLoggedIn =
+          previous is AsyncData<Session?> && previous.value != null;
+      final bool isLoggedIn = next is AsyncData<Session?> && next.value != null;
+      if (!wasLoggedIn && isLoggedIn) {
+        debugPrint("User logged in, starting AppUsageService tracking.");
+        appUsageService.startTracking();
+      } else if (wasLoggedIn && !isLoggedIn) {
+        debugPrint("User logged out, stopping AppUsageService tracking.");
+        appUsageService.stopTracking();
+      }
+    });
+
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Social Balans',
       debugShowCheckedModeBanner: false,
       theme: AppDesignSystem.lightTheme,
       darkTheme: AppDesignSystem.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode, // Use themeMode from provider
       home: authState.when(
         data: (session) {
           return session != null ? const ModernHome() : const LoginScreen();
@@ -134,6 +211,8 @@ class SocialBalansAppMain extends ConsumerWidget {
         '/register': (context) => const RegisterScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/home': (context) => const ModernHome(),
+        '/mood-entry': (context) => const MoodEntryScreen(), // Added route
+        '/challenges': (context) => const ChallengesScreen(), // Added route
       },
     );
   }
