@@ -16,6 +16,7 @@ import 'screens/modern_dashboard.dart'; // Import du nouveau dashboard
 import 'screens/challenges.dart';
 import 'screens/stats.dart';
 import 'screens/suggestions.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/auth_service.dart'; // Import corrigé
 
 // Hive-modellen
@@ -25,7 +26,7 @@ import 'models/challenge_category_adapter.dart';
 import 'models/screen_time_entry.dart';
 import 'core/design_system.dart'; // Import du nouveau design system
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Charger les variables d'environnement
@@ -72,24 +73,52 @@ Future<void> main() async {
   await Hive.openBox<MoodEntry>('moods');
   await Hive.openBox<ScreenTimeEntry>('screen_time');
 
-  runApp(
-    const ProviderScope(
-      child: SocialBalansApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: RootDecider()));
 }
 
-class SocialBalansApp extends ConsumerWidget {
-  const SocialBalansApp({super.key});
+class RootDecider extends StatefulWidget {
+  const RootDecider({super.key});
+  @override
+  State<RootDecider> createState() => _RootDeciderState();
+}
 
+class _RootDeciderState extends State<RootDecider> {
+  bool? _onboardingDone;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _onboardingDone = prefs.getBool('onboarding_done') ?? false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_onboardingDone == null) {
+      return const ModernSplashScreen();
+    }
+    return _onboardingDone!
+        ? const SocialBalansAppMain()
+        : OnboardingScreen(onDone: () {
+            setState(() => _onboardingDone = true);
+          });
+  }
+}
+
+class SocialBalansAppMain extends ConsumerWidget {
+  const SocialBalansAppMain({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
-
     return MaterialApp(
       title: 'Social Balans',
       debugShowCheckedModeBanner: false,
-      // 🎨 ACTIVATION DU NOUVEAU DESIGN SYSTEM MODERNE !
       theme: AppDesignSystem.lightTheme,
       darkTheme: AppDesignSystem.darkTheme,
       themeMode: ThemeMode.system,
@@ -216,7 +245,7 @@ class ErrorScreen extends StatelessWidget {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const SocialBalansApp(),
+                            builder: (context) => const SocialBalansAppMain(),
                           ),
                         );
                       },
