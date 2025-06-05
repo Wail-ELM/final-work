@@ -24,7 +24,5 @@ final demoUserProvider = Provider<User?>((ref) {
 
 // Provider pour l'utilisateur actuel
 final currentUserProvider = Provider<User?>((ref) {
-  // En mode démo, utiliser l'utilisateur de test
-  return ref.watch(demoUserProvider);
-  // Version normale : return ref.watch(authServiceProvider).currentUser;
+  return ref.watch(authServiceProvider).currentUser;
 });

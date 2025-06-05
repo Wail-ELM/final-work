@@ -4,6 +4,10 @@ import '../providers/challenge_provider.dart';
 import '../models/challenge.dart';
 import '../models/challenge_category_adapter.dart';
 import 'challenge_suggestions_screen.dart';
+import '../providers/suggestion_provider.dart';
+import '../data/challenge_templates.dart';
+import '../providers/auth_provider.dart';
+import 'package:uuid/uuid.dart';
 
 class ChallengesScreen extends ConsumerStatefulWidget {
   const ChallengesScreen({super.key});
@@ -114,11 +118,125 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           ),
         ],
       ),
-      floatingActionButton: challenges.isEmpty ? _buildDiscoverFAB() : null,
     );
   }
 
   Widget _buildChallengesList(List<Challenge> challenges, String type) {
+    if (challenges.isEmpty && type == "alle") {
+      final suggestedTemplates = ref.watch(suggestedTemplatesProvider);
+      final user = ref.read(currentUserProvider);
+      final templatesToShow = suggestedTemplates.isNotEmpty
+          ? suggestedTemplates
+          : challengeTemplates;
+      if (templatesToShow.isEmpty) {
+        return _buildEmptyState(type);
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: templatesToShow.length,
+        itemBuilder: (context, index) {
+          final tpl = templatesToShow[index];
+          final alreadyExists = challenges
+              .any((c) => c.title == tpl.title && c.category == tpl.category);
+          final challenge = Challenge(
+            id: const Uuid().v4(),
+            userId: user?.id ?? '',
+            title: tpl.title,
+            description: tpl.description,
+            category: tpl.category,
+            startDate: DateTime.now(),
+            endDate: null,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            isDone: false,
+          );
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ListTile(
+                leading: Text(
+                  _getCategoryIcon(tpl.category),
+                  style: const TextStyle(fontSize: 24),
+                ),
+                title: Text(
+                  tpl.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: Text(
+                  tpl.description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.color
+                        ?.withOpacity(0.7),
+                  ),
+                ),
+                trailing: ElevatedButton(
+                  onPressed: alreadyExists
+                      ? null
+                      : () async {
+                          if (user == null || user.id.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Fout: geen gebruiker gevonden.')),
+                            );
+                            return;
+                          }
+                          if (user.id.startsWith('demo')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Toevoegen niet mogelijk in demo-modus.')),
+                            );
+                            return;
+                          }
+                          await ref
+                              .read(allChallengesProvider.notifier)
+                              .add(challenge);
+                          ref.read(allChallengesProvider.notifier).refresh();
+                          setState(() {});
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Uitdaging toegevoegd!')),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: alreadyExists
+                        ? Theme.of(context).disabledColor
+                        : Theme.of(context).primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  child: Text(alreadyExists ? 'Toegevoegd' : 'Toevoegen'),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
     if (challenges.isEmpty) {
       return _buildEmptyState(type);
     }
@@ -392,50 +510,9 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
               ),
               textAlign: TextAlign.center,
             ),
-            if (type == "alle") ...[
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const ChallengeSuggestionsScreen(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.auto_awesome, size: 18),
-                  label: const Text('Ontdek uitdagingen'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDiscoverFAB() {
-    return FloatingActionButton.extended(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ChallengeSuggestionsScreen(),
-          ),
-        );
-      },
-      icon: const Icon(Icons.auto_awesome),
-      label: const Text('Ontdek uitdagingen'),
-      backgroundColor: Theme.of(context).primaryColor,
     );
   }
 
