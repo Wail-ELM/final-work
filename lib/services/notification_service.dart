@@ -1,33 +1,51 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
+
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  return NotificationService();
+});
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications =
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
     tz.initializeTimeZones();
+    try {
+      tz.setLocalLocation(tz.getLocation('Europe/Brussels'));
+    } catch (e) {
+      print('Failed to set local location: $e. Using UTC as fallback.');
+      tz.setLocalLocation(tz.UTC);
+    }
 
-    const androidSettings =
+    const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
-    const initSettings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
 
-    await _notifications.initialize(
-      initSettings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
+    await _notificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse:
+          _onDidReceiveBackgroundNotificationResponse,
     );
 
     // Vérifier les préférences de notification
@@ -39,9 +57,98 @@ class NotificationService {
     }
   }
 
-  Future<void> _onNotificationTapped(NotificationResponse response) async {
-    // TODO: Gérer le tap sur la notification
-    // Par exemple, naviguer vers l'écran approprié
+  void _onDidReceiveNotificationResponse(NotificationResponse response) {
+    print('Notification Response: ${response.payload}');
+    // TODO: Gérer la navigation ou l'action basée sur le payload
+  }
+
+  @pragma('vm:entry-point')
+  static void _onDidReceiveBackgroundNotificationResponse(
+      NotificationResponse response) {
+    print('Background Notification Response: ${response.payload}');
+    // TODO: Gérer la navigation ou l'action basée sur le payload
+  }
+
+  Future<bool> requestIOSPermissions() async {
+    final result = await _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+    return result ?? false;
+  }
+
+  Future<void> showSimpleNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'social_balans_channel_id',
+      'Social Balans Meldingen',
+      channelDescription: 'Kanaal voor Social Balans app meldingen',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+    );
+    const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: DarwinNotificationDetails(
+            presentSound: true, presentBadge: true, presentAlert: true));
+
+    await _notificationsPlugin.show(
+      id,
+      title,
+      body,
+      notificationDetails,
+      payload: payload,
+    );
+  }
+
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDateTime,
+    String? payload,
+    String? channelId = 'social_balans_scheduled_channel',
+    String? channelName = 'Social Balans Geplande Meldingen',
+    String? channelDescription = 'Kanaal voor geplande Social Balans meldingen',
+  }) async {
+    await _notificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      tz.TZDateTime.from(scheduledDateTime, tz.local),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          channelId!,
+          channelName!,
+          channelDescription: channelDescription,
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: const DarwinNotificationDetails(
+            presentSound: true, presentBadge: true, presentAlert: true),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      // uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, // Temporairement commenté
+      payload: payload,
+      // matchDateTimeComponents: DateTimeComponents.time, // Pour récurrence quotidienne (aussi commenté car lié)
+    );
+  }
+
+  Future<void> cancelNotification(int id) async {
+    await _notificationsPlugin.cancel(id);
+  }
+
+  Future<void> cancelAllNotifications() async {
+    await _notificationsPlugin.cancelAll();
   }
 
   Future<void> _scheduleDefaultNotifications() async {
@@ -89,7 +196,7 @@ class NotificationService {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
-    await _notifications.zonedSchedule(
+    await _notificationsPlugin.zonedSchedule(
       0,
       'Hoe voel je je vandaag?',
       'Neem even de tijd om je humeur in te voeren.',
@@ -136,7 +243,7 @@ class NotificationService {
     for (var i = 0; i < 7; i++) {
       final time = scheduledDate.add(Duration(hours: i * 2));
       if (time.hour < 21) {
-        await _notifications.zonedSchedule(
+        await _notificationsPlugin.zonedSchedule(
           i + 1,
           'Tijd voor een pauze!',
           'Neem even de tijd om je ogen te laten rusten.',
@@ -187,7 +294,7 @@ class NotificationService {
       scheduledDate = scheduledDate.add(const Duration(days: 7));
     }
 
-    await _notifications.zonedSchedule(
+    await _notificationsPlugin.zonedSchedule(
       8,
       'Nieuwe week, nieuwe doelen!',
       'Bekijk je doelen voor deze week.',
@@ -204,7 +311,7 @@ class NotificationService {
     if (enabled) {
       await _scheduleDefaultNotifications();
     } else {
-      await _notifications.cancelAll();
+      await _notificationsPlugin.cancelAll();
     }
   }
 
@@ -232,7 +339,7 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    await _notifications.show(
+    await _notificationsPlugin.show(
       DateTime.now().millisecond,
       title,
       body,
