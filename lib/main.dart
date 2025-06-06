@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,6 +22,7 @@ import 'screens/mood_entry_screen.dart'; // Added import for MoodEntryScreen
 // Hide potentially conflicting names from the service file if they are also defined in provider files
 import 'services/auth_service.dart' hide authServiceProvider, authStateProvider;
 import 'services/notification_service.dart'; // Import du service
+import 'models/badge.dart'; // Import the new Badge model
 
 // Hive-modellen
 import 'models/challenge.dart';
@@ -34,6 +35,7 @@ import 'core/design_system.dart'; // Import du nouveau design system
 import 'providers/auth_provider.dart'; // Provides authStateProvider
 import 'providers/user_objective_provider.dart'; // Provides appUsageServiceProvider
 import 'providers/theme_provider.dart'; // Import the new themeModeProvider
+import 'providers/mood_provider.dart'; // Provides moodStatsProvider
 
 // Clé globale pour le Navigator (optionnel, mais utile pour les notifs)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -90,11 +92,13 @@ void main() async {
   Hive.registerAdapter(ChallengeCategoryAdapter());
   Hive.registerAdapter(DurationAdapter());
   Hive.registerAdapter(ScreenTimeEntryAdapter());
+  Hive.registerAdapter(BadgeAdapter()); // Register the new adapter
 
   // Ouvrir les boîtes
   await Hive.openBox<Challenge>('challenges');
   await Hive.openBox<MoodEntry>('moods');
   await Hive.openBox<ScreenTimeEntry>('screen_time');
+  await Hive.openBox<Badge>('badges'); // Open the new badges box
 
   // Initialiser le service de notification
   final notificationService = NotificationService();
@@ -349,165 +353,79 @@ class ModernHome extends ConsumerStatefulWidget {
 }
 
 class _ModernHomeState extends ConsumerState<ModernHome> {
-  int _currentIndex = 0;
+  int _selectedIndex = 0;
 
-  // 🚀 UTILISATION DU NOUVEAU DASHBOARD MODERNE !
-  static const _screens = [
-    ModernDashboard(), // ← NOUVEAU DASHBOARD PREMIUM !
+  static const List<Widget> _widgetOptions = <Widget>[
+    ModernDashboard(),
     ChallengesScreen(),
     StatsScreen(),
     SuggestionsScreen(),
   ];
 
-  static const _labels = [
-    'Dashboard',
-    'Uitdagingen',
-    'Statistieken',
-    'Suggesties',
-  ];
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
-  static const _icons = [
-    Icons.home_outlined,
-    Icons.flag_outlined,
-    Icons.bar_chart_outlined,
-    Icons.lightbulb_outline,
-  ];
+  void _onAddMoodPressed() async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const MoodEntryScreen()),
+    );
+    // If a mood was successfully entered, refresh relevant providers
+    if (result == true && mounted) {
+      ref.refresh(moodStatsProvider);
+      ref.refresh(userStreakProvider);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _labels[_currentIndex],
-          style: AppDesignSystem.heading3,
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        actions: [
-          // Modern profile button
-          Container(
-            margin: const EdgeInsets.only(right: AppDesignSystem.space8),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(AppDesignSystem.space8),
-                decoration: BoxDecoration(
-                  color: AppDesignSystem.primaryBlue.withOpacity(0.1),
-                  borderRadius: AppDesignSystem.borderRadiusSmall,
-                ),
-                child: Icon(
-                  Icons.person_outline,
-                  color: AppDesignSystem.primaryBlue,
-                ),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
-          ),
-          // Modern logout button
-          Container(
-            margin: const EdgeInsets.only(right: AppDesignSystem.space16),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(AppDesignSystem.space8),
-                decoration: BoxDecoration(
-                  color: AppDesignSystem.error.withOpacity(0.1),
-                  borderRadius: AppDesignSystem.borderRadiusSmall,
-                ),
-                child: Icon(
-                  Icons.logout,
-                  color: AppDesignSystem.error,
-                ),
-              ),
-              onPressed: () async {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    backgroundColor: Theme.of(context).cardColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppDesignSystem.borderRadiusLarge,
-                    ),
-                    title: Row(
-                      children: [
-                        Icon(Icons.logout, color: AppDesignSystem.error),
-                        const SizedBox(width: AppDesignSystem.space12),
-                        const Text('Uitloggen'),
-                      ],
-                    ),
-                    content: const Text(
-                      'Weet je zeker dat je wilt uitloggen?',
-                    ),
-                    actions: [
-                      ModernButton(
-                        text: 'Annuleren',
-                        isPrimary: false,
-                        onPressed: () => Navigator.pop(context, false),
-                      ),
-                      const SizedBox(width: AppDesignSystem.space12),
-                      ModernButton(
-                        text: 'Uitloggen',
-                        onPressed: () => Navigator.pop(context, true),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirmed == true && mounted) {
-                  await ref.read(authServiceProvider).signOut();
-                }
-              },
-            ),
-          ),
-        ],
+      body: Center(
+        child: _widgetOptions.elementAt(_selectedIndex),
       ),
-      body: SafeArea(child: _screens[_currentIndex]),
-      // 🎨 NOUVELLE NAVIGATION BAR MODERNE
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(AppDesignSystem.radiusLarge),
-            topRight: Radius.circular(AppDesignSystem.radiusLarge),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _onAddMoodPressed,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: const Icon(Icons.add_reaction_outlined, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_outlined),
+              activeIcon: Icon(Icons.dashboard),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.flag_outlined),
+              activeIcon: Icon(Icons.flag),
+              label: 'Uitdagingen',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.bar_chart_outlined),
+              activeIcon: Icon(Icons.bar_chart),
+              label: 'Statistieken',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.lightbulb_outline),
+              activeIcon: Icon(Icons.lightbulb),
+              label: 'Suggesties',
             ),
           ],
-        ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() => _currentIndex = index);
-          },
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          destinations: List.generate(
-            _labels.length,
-            (index) => NavigationDestination(
-              icon: Icon(_icons[index]),
-              selectedIcon: Container(
-                padding: const EdgeInsets.all(AppDesignSystem.space8),
-                decoration: BoxDecoration(
-                  color: AppDesignSystem.primaryBlue.withOpacity(0.1),
-                  borderRadius: AppDesignSystem.borderRadiusSmall,
-                ),
-                child: Icon(
-                  _icons[index],
-                  color: AppDesignSystem.primaryBlue,
-                ),
-              ),
-              label: _labels[index],
-            ),
-          ),
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Colors.grey[600],
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
         ),
       ),
     );
