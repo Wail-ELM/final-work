@@ -1,215 +1,199 @@
 import 'package:flutter/material.dart';
-import '../models/challenge.dart';
-import '../models/challenge_category_adapter.dart';
+import 'package:social_balans/core/design_system.dart';
+import 'package:social_balans/models/challenge.dart';
+import 'package:social_balans/models/challenge_category_adapter.dart';
 
 class ChallengeCard extends StatelessWidget {
   final Challenge challenge;
-  final String actionLabel;
-  final VoidCallback onAction;
+  final VoidCallback onToggle;
 
   const ChallengeCard({
     super.key,
     required this.challenge,
-    required this.actionLabel,
-    required this.onAction,
+    required this.onToggle,
   });
 
-  Color _getCategoryColor(ChallengeCategory category) {
+  Color _getCategoryColor(ChallengeCategory category, BuildContext context) {
     switch (category) {
       case ChallengeCategory.screenTime:
-        return Colors.blue;
+        return AppDesignSystem.primaryBlue;
       case ChallengeCategory.focus:
-        return Colors.green;
+        return AppDesignSystem.success;
       case ChallengeCategory.notifications:
-        return Colors.orange;
+        return AppDesignSystem.warning;
     }
-  }
-
-  IconData _getCategoryIcon(ChallengeCategory category) {
-    switch (category) {
-      case ChallengeCategory.screenTime:
-        return Icons.phone_android;
-      case ChallengeCategory.focus:
-        return Icons.center_focus_strong;
-      case ChallengeCategory.notifications:
-        return Icons.notifications;
-    }
-  }
-
-  int _getDaysCompleted() {
-    final now = DateTime.now();
-    final daysPassed = now.difference(challenge.startDate).inDays;
-    return daysPassed.clamp(0, _getTotalDays());
-  }
-
-  int _getTotalDays() {
-    if (challenge.endDate == null) return 30; // Default 30 days
-    return challenge.endDate!.difference(challenge.startDate).inDays;
   }
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
-    final categoryColor = _getCategoryColor(challenge.category);
-    final daysCompleted = _getDaysCompleted();
-    final totalDays = _getTotalDays();
-    final progress = totalDays > 0 ? daysCompleted / totalDays : 0.0;
+    final theme = Theme.of(context);
+    final categoryColor = _getCategoryColor(challenge.category, context);
+    final progress = _calculateProgress();
+    final bool isExpired = challenge.endDate != null &&
+        !challenge.isDone &&
+        DateTime.now().isAfter(challenge.endDate!);
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 3,
-      child: InkWell(
-        onTap: onAction,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                categoryColor.withOpacity(0.05),
-                categoryColor.withOpacity(0.02),
-              ],
-            ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          // Progress bar at the top
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: theme.scaffoldBackgroundColor,
+            valueColor: AlwaysStoppedAnimation<Color>(categoryColor),
+            minHeight: 5,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.all(AppDesignSystem.space16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: categoryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        _getCategoryIcon(challenge.category),
-                        color: categoryColor,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            challenge.title,
-                            style: t.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (challenge.description != null)
-                            Text(
-                              challenge.description!,
-                              style: t.textTheme.bodySmall?.copyWith(
-                                color: t.textTheme.bodySmall?.color
-                                    ?.withOpacity(0.7),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (challenge.isDone)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.check, color: Colors.white, size: 16),
-                            SizedBox(width: 4),
-                            Text(
-                              'Terminé',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Progress bar
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Progrès',
-                          style: t.textTheme.bodySmall,
-                        ),
-                        Text(
-                          '${(progress * 100).toInt()}%',
-                          style: t.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: categoryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress.clamp(0.0, 1.0),
-                        backgroundColor: Colors.grey.shade200,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(categoryColor),
-                        minHeight: 8,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$daysCompleted/$totalDays jours',
-                          style: t.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Commencé le ${challenge.startDate.day}/${challenge.startDate.month}',
-                          style: t.textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    ElevatedButton(
-                      onPressed: challenge.isDone ? null : onAction,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: categoryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(challenge.isDone ? 'Complété' : actionLabel),
-                    ),
-                  ],
-                ),
+                _buildHeader(context, categoryColor, isExpired),
+                const SizedBox(height: AppDesignSystem.space12),
+                if (challenge.description?.isNotEmpty ?? false)
+                  Text(
+                    challenge.description!,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                const SizedBox(height: AppDesignSystem.space16),
+                _buildFooter(context),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  double _calculateProgress() {
+    if (challenge.isDone) return 1.0;
+    if (challenge.endDate == null) return 0.0;
+
+    final total =
+        challenge.endDate!.difference(challenge.startDate).inMilliseconds;
+    if (total <= 0) return 1.0;
+
+    final elapsed =
+        DateTime.now().difference(challenge.startDate).inMilliseconds;
+    return (elapsed / total).clamp(0.0, 1.0);
+  }
+
+  Widget _buildHeader(
+      BuildContext context, Color categoryColor, bool isExpired) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(challenge.category.icon, color: categoryColor, size: 28),
+        const SizedBox(width: AppDesignSystem.space12),
+        Expanded(
+          child: Text(
+            challenge.title,
+            style: theme.textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
         ),
+        const SizedBox(width: AppDesignSystem.space8),
+        if (challenge.isDone)
+          _StatusChip(
+            label: 'Voltooid',
+            color: AppDesignSystem.success,
+            icon: Icons.check_circle,
+          )
+        else if (isExpired)
+          _StatusChip(
+            label: 'Verlopen',
+            color: AppDesignSystem.error,
+            icon: Icons.timer_off,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFooter(BuildContext context) {
+    final theme = Theme.of(context);
+    final timeLeft = _getTimeLeft();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (timeLeft != null)
+          Row(
+            children: [
+              Icon(Icons.timer_outlined,
+                  size: 16, color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: AppDesignSystem.space4),
+              Text(
+                timeLeft,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        const Spacer(),
+        ElevatedButton(
+          onPressed: onToggle,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: challenge.isDone
+                ? theme.colorScheme.secondary
+                : theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                challenge.isDone ? Icons.repeat : Icons.check,
+                size: 18,
+              ),
+              const SizedBox(width: AppDesignSystem.space8),
+              Text(challenge.isDone ? 'Herstarten' : 'Voltooien'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String? _getTimeLeft() {
+    if (challenge.isDone || challenge.endDate == null) return null;
+    final remaining = challenge.endDate!.difference(DateTime.now());
+
+    if (remaining.isNegative) return "Verlopen";
+    if (remaining.inDays > 1) return '${remaining.inDays} dagen resterend';
+    if (remaining.inHours > 1) return '${remaining.inHours} uur resterend';
+    return '${remaining.inMinutes} min resterend';
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  final IconData icon;
+
+  const _StatusChip(
+      {required this.label, required this.color, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDesignSystem.space12,
+          vertical: AppDesignSystem.space8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppDesignSystem.radiusFull),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: AppDesignSystem.space8),
+          Text(
+            label,
+            style: TextStyle(
+                color: color, fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+        ],
       ),
     );
   }
