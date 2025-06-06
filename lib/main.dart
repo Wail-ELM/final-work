@@ -426,6 +426,8 @@ class _ModernHomeState extends ConsumerState<ModernHome> {
           unselectedItemColor: Colors.grey[600],
           showSelectedLabels: false,
           showUnselectedLabels: false,
+          selectedFontSize: 0,
+          unselectedFontSize: 0,
         ),
       ),
     );

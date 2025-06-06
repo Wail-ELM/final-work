@@ -44,7 +44,7 @@ class UserDataService {
 
       if (updates.length > 1) {
         // Only update if there's more than just updated_at
-        await _supabase.from('profiles').update(updates).eq('id', userId);
+      await _supabase.from('profiles').update(updates).eq('id', userId);
       }
     } catch (e) {
       throw _handleError(e);

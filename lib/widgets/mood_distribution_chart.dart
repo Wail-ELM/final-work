@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/mood_entry.dart';
+import './empty_state_widget.dart';
 
 class MoodDistributionChart extends StatelessWidget {
   final List<MoodEntry> entries;
@@ -13,7 +14,8 @@ class MoodDistributionChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sections = _getMoodSections();
-    final total = entries.length;
+    final totalValue =
+        sections.fold<double>(0.0, (sum, section) => sum + section.value);
 
     return Card(
       child: Padding(
@@ -26,9 +28,11 @@ class MoodDistributionChart extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            if (total == 0)
-              const Center(
-                child: Text('Geen gegevens beschikbaar'),
+            if (totalValue == 0)
+              const EmptyStateWidget(
+                icon: Icons.pie_chart_outline,
+                title: 'Geen data beschikbaar',
+                message: 'Voer je stemming in om hier een verdeling te zien.',
               )
             else
               AspectRatio(

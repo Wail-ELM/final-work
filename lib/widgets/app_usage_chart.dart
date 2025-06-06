@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../widgets/empty_state_widget.dart';
 
 class AppUsageChart extends StatefulWidget {
   final Map<String, Duration> appUsageData;
@@ -55,11 +56,10 @@ class _AppUsageChartState extends State<AppUsageChart>
     final topApps = sortedApps.take(widget.limit).toList();
 
     if (topApps.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text('Geen app-gebruiksdata beschikbaar voor deze periode.'),
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.hourglass_empty_outlined,
+        title: 'Geen app-gebruiksdata',
+        message: 'Gebruik de app een paar dagen om hier je top apps te zien.',
       );
     }
 

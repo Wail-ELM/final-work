@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For date formatting
+import './empty_state_widget.dart'; // Import the shared widget
 
 class TotalScreenTimeTrendChart extends StatelessWidget {
   final Map<DateTime, Duration> dailyScreenTimeData;
@@ -15,14 +16,11 @@ class TotalScreenTimeTrendChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (dailyScreenTimeData.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            'Geen gegevens over schermtijd beschikbaar voor deze periode.',
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.show_chart_outlined,
+        title: 'Geen trend data',
+        message:
+            'Gebruik de app een paar dagen om je schermtijd trend te zien.',
       );
     }
 

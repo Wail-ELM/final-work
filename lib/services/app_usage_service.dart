@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:app_usage/app_usage.dart';
@@ -26,7 +25,7 @@ class AppUsageService {
       'lastLimitNotificationDate';
 
   Future<void> startTracking() async {
-    if (!Platform.isAndroid) return;
+    if (kIsWeb) return;
 
     if (_appTrackingTimer == null || !_appTrackingTimer!.isActive) {
       _appTrackingTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
@@ -46,6 +45,7 @@ class AppUsageService {
   }
 
   Future<void> stopTracking() async {
+    if (kIsWeb) return;
     _appTrackingTimer?.cancel();
     _appTrackingTimer = null;
     _limitCheckTimer?.cancel();
@@ -62,7 +62,7 @@ class AppUsageService {
   }
 
   Future<void> _updateCurrentApp() async {
-    if (!Platform.isAndroid) return;
+    if (kIsWeb) return;
     try {
       final now = DateTime.now();
       final startTime = now.subtract(const Duration(minutes: 1, seconds: 5));
@@ -89,6 +89,7 @@ class AppUsageService {
   }
 
   Future<void> _logAppUsage(String packageName, Duration duration) async {
+    if (kIsWeb) return;
     final now = DateTime.now();
     final String userId =
         _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
@@ -134,7 +135,7 @@ class AppUsageService {
   }
 
   Future<Map<String, Duration>> getAppUsageForDate(DateTime date) async {
-    if (!Platform.isAndroid) return {};
+    if (kIsWeb) return {};
     final String userId =
         _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
     final entries = _box.values.where((e) =>
@@ -152,7 +153,7 @@ class AppUsageService {
   }
 
   Future<Duration?> getTotalScreenTimeForDate(DateTime date) async {
-    if (!Platform.isAndroid) {
+    if (kIsWeb) {
       return null;
     }
     final usage = await getAppUsageForDate(date);
@@ -171,7 +172,7 @@ class AppUsageService {
     DateTime date, {
     int limit = 5,
   }) async {
-    if (!Platform.isAndroid) return [];
+    if (kIsWeb) return [];
     final usage = await getAppUsageForDate(date);
     final sorted = usage.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -180,7 +181,7 @@ class AppUsageService {
 
   Future<Map<DateTime, Duration>> getWeeklyScreenTimeData(
       DateTime endDate) async {
-    if (!Platform.isAndroid) return {};
+    if (kIsWeb) return {};
 
     final String userId =
         _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
@@ -203,7 +204,7 @@ class AppUsageService {
 
   Future<Map<String, Duration>> getAggregatedAppUsage(
       DateTime startDate, DateTime endDate) async {
-    if (!Platform.isAndroid) return {};
+    if (kIsWeb) return {};
     final String userId =
         _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
     if (userId == 'unknown_user_id') return {};
@@ -232,7 +233,7 @@ class AppUsageService {
 
   Future<Map<DateTime, Duration>> getDailyTotalScreenTimeForPeriod(
       DateTime startDate, DateTime endDate) async {
-    if (!Platform.isAndroid) {
+    if (kIsWeb) {
       debugPrint(
           "AppUsageService: Platform is not Android. Returning empty map for period.");
       return {};
@@ -270,35 +271,47 @@ class AppUsageService {
   }
 
   Future<void> _checkScreenTimeLimit() async {
+    if (kIsWeb) return;
     try {
       final userPrefs = _ref.read(userPreferencesProvider);
-      if (!userPrefs.isScreenTimeLimitEnabled) {
-        return;
-      }
+      final screenTimeGoal = userPrefs.dailyScreenTimeGoal;
 
-      final today = DateTime.now();
-      final todayDateString = "${today.year}-${today.month}-${today.day}";
+      if (screenTimeGoal > Duration.zero) {
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final todayScreenTime =
+            await getTotalScreenTimeForDate(today) ?? Duration.zero;
 
-      final sharedPrefs = await SharedPreferences.getInstance();
-      final lastNotificationDate =
-          sharedPrefs.getString(_lastLimitNotificationDateKey);
-
-      if (lastNotificationDate == todayDateString) {
-        return;
-      }
-
-      final Duration? totalScreenTimeToday =
-          await getTotalScreenTimeForDate(today);
-
-      if (totalScreenTimeToday != null &&
-          totalScreenTimeToday >= userPrefs.dailyScreenTimeGoal) {
-        await NotificationService().showScreenTimeLimitNotification(
-            userPrefs.dailyScreenTimeGoal, totalScreenTimeToday);
-        await sharedPrefs.setString(
-            _lastLimitNotificationDateKey, todayDateString);
+        if (todayScreenTime > screenTimeGoal && await _canShowNotification()) {
+          final overage = todayScreenTime - screenTimeGoal;
+          final notificationService = _ref.read(notificationServiceProvider);
+          await notificationService.showSimpleNotification(
+            id: 99, // Unique ID for screen time notifications
+            title: 'Limite de temps d\'écran dépassée',
+            body:
+                "Vous avez dépassé votre objectif de temps d'écran de ${overage.inMinutes} minutes.",
+          );
+          await _setLastNotificationDate(today);
+        }
       }
     } catch (e) {
-      debugPrint("Error checking screen time limit: $e");
+      debugPrint('Error checking screen time limit: $e');
     }
+  }
+
+  Future<void> _setLastNotificationDate(DateTime date) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        _lastLimitNotificationDateKey, date.toIso8601String());
+  }
+
+  Future<bool> _canShowNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastDateStr = prefs.getString(_lastLimitNotificationDateKey);
+    if (lastDateStr == null) return true;
+
+    final lastDate = DateTime.parse(lastDateStr);
+    final now = DateTime.now();
+    return now.difference(lastDate).inDays >= 1;
   }
 }
