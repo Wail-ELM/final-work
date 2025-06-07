@@ -123,3 +123,4 @@ final badgeControllerProvider = Provider<void>((ref) {
     }
   });
 });
+ 
