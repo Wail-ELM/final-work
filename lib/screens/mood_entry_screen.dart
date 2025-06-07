@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
-import '../services/user_data_service.dart';
+import '../providers/mood_provider.dart';
 import '../models/mood_entry.dart';
 import 'package:uuid/uuid.dart';
 
@@ -69,10 +69,15 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
     try {
       final user = ref.read(authServiceProvider).currentUser;
       if (user == null) {
-        throw Exception('Gebruiker niet ingelogd');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Erreur: Gebruiker niet ingelogd.'),
+              backgroundColor: Colors.red),
+        );
+        setState(() => _isLoading = false);
+        return;
       }
 
-      // Maak stemming invoer aan
       final moodEntry = MoodEntry(
         id: const Uuid().v4(),
         userId: user.id,
@@ -83,15 +88,9 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
         createdAt: DateTime.now(),
       );
 
-      // Opslaan in Supabase
-      await ref.read(userDataServiceProvider).addMoodEntry(
-            userId: user.id,
-            moodValue: _selectedMood,
-            note: moodEntry.note,
-          );
+      await ref.read(moodsProvider.notifier).add(moodEntry);
 
       if (mounted) {
-        // Succes animatie
         await _scaleController.forward();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -110,11 +109,9 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
           ),
         );
 
-        // Terug naar vorig scherm na een vertraging
         await Future.delayed(const Duration(milliseconds: 1500));
         if (mounted) {
-          Navigator.pop(
-              context, true); // true geeft aan dat de invoer is opgeslagen
+          Navigator.pop(context, true);
         }
       }
     } catch (e) {
@@ -125,7 +122,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Fout: $e')),
+                Expanded(child: Text('Fout bij opslaan: ${e.toString()}')),
               ],
             ),
             backgroundColor: Colors.red,
