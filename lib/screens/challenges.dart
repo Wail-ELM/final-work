@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:social_balans/core/design_system.dart';
 import 'package:social_balans/models/challenge.dart';
-import 'package:social_balans/models/challenge_category_adapter.dart';
 import 'package:social_balans/providers/challenge_provider.dart';
 import 'package:social_balans/screens/suggestions.dart';
 import 'package:social_balans/widgets/challenge_card.dart';

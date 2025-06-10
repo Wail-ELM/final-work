@@ -17,6 +17,7 @@ import 'screens/stats.dart';
 import 'screens/suggestions.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/mood_entry_screen.dart'; // Added import for MoodEntryScreen
+import 'screens/profile_screen.dart'; // Import the profile screen
 // Hide potentially conflicting names from the service file if they are also defined in provider files
 import 'services/notification_service.dart'; // Import du service
 
@@ -33,6 +34,7 @@ import 'providers/auth_provider.dart'; // Provides authStateProvider
 import 'providers/user_objective_provider.dart'; // Provides appUsageServiceProvider
 import 'providers/theme_provider.dart'; // Import the new themeModeProvider
 import 'providers/mood_provider.dart'; // Provides moodStatsProvider
+import 'providers/badge_provider.dart'; // Import badge provider to activate the badge system
 
 // Clé globale pour le Navigator (optionnel, mais utile pour les notifs)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -178,6 +180,9 @@ class SocialBalansAppMain extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
     final themeMode = ref.watch(themeModeProvider); // Get themeMode
 
+    // IMPORTANT: Activate the badge system by reading the controller
+    ref.read(badgeControllerProvider);
+
     // Listen to authState changes (this logic is already present and correct)
     ref.listen<AsyncValue<Session?>>(authStateProvider, (previous, next) {
       final appUsageService = ref.read(appUsageServiceProvider);
@@ -214,6 +219,7 @@ class SocialBalansAppMain extends ConsumerWidget {
         '/home': (context) => const ModernHome(),
         '/mood-entry': (context) => const MoodEntryScreen(), // Added route
         '/challenges': (context) => const ChallengesScreen(), // Added route
+        '/profile': (context) => const ProfileScreen(), // Added route
       },
     );
   }

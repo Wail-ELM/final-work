@@ -1,19 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:collection/collection.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart'; // Import main.dart to get access to sharedPreferencesProvider
 import '../models/challenge_category_adapter.dart';
 import '../services/app_usage_service.dart';
 import '../providers/mood_provider.dart';
-import '../services/auth_service.dart' hide authServiceProvider;
 import '../providers/auth_provider.dart';
-import '../models/mood_entry.dart';
 import '../services/demo_data_service.dart';
-import '../models/screen_time_entry.dart';
 import '../services/user_data_service.dart';
 
 // Define the new AppUsageService provider
@@ -181,42 +175,6 @@ int _calculateStreak(List<dynamic> entries) {
   }
 
   return streak;
-}
-
-List<String> _generateDailyObjectives(Duration screenTime) {
-  final objectives = <String>[
-    "Focus op bewust schermgebruik",
-    "Neem pauzes tussen schermtijd",
-    "Besteed tijd aan offline activiteiten",
-    "Verbind met familie en vrienden",
-    "Ga naar buiten voor frisse lucht",
-    "Lees een boek in plaats van scrollen",
-    "Mediteer 10 minuten vandaag",
-    "Doe een digitale detox van 1 uur",
-    "Zet notificaties uit tijdens maaltijden",
-    "Sluit sociale media voor de avond",
-  ];
-
-  // Voeg specifieke doelen toe op basis van schermtijd
-  if (screenTime.inHours > 6) {
-    objectives.addAll([
-      "Probeer schermtijd te reduceren met 30 minuten",
-      "Gebruik de 20-20-20 regel",
-      "Plan schermvrije tijd voor het slapengaan",
-    ]);
-  } else if (screenTime.inHours > 4) {
-    objectives.addAll([
-      "Behoud je goede schermbalans",
-      "Focus op kwaliteit boven kwantiteit",
-    ]);
-  } else {
-    objectives.addAll([
-      "Geweldig schermgebruik! Behoud dit niveau",
-      "Je bent een voorbeeld voor anderen",
-    ]);
-  }
-
-  return objectives;
 }
 
 // Provider for user preferences

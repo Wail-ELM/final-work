@@ -30,7 +30,19 @@ class ChallengesNotifier extends StateNotifier<List<Challenge>> {
 
     // Mode démo
     if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-      state = DemoDataService.generateDemoChallenges();
+      // Commencer par les challenges de démo par défaut
+      final demoChallenges = DemoDataService.generateDemoChallenges();
+
+      // Chercher les versions modifiées dans Hive
+      final List<Challenge> finalChallenges = [];
+
+      for (final demoChallenge in demoChallenges) {
+        // Chercher une version mise à jour dans Hive
+        final updatedChallenge = _box.get(demoChallenge.id);
+        finalChallenges.add(updatedChallenge ?? demoChallenge);
+      }
+
+      state = finalChallenges;
       return;
     }
 
@@ -108,11 +120,7 @@ class ChallengeNotifier extends StateNotifier<Challenge?> {
 
     final currentUser = _authService.currentUser;
 
-    // Pas de modification en mode démo
-    if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-      return;
-    }
-
+    // En mode démo, permettre les modifications locales
     final updatedChallenge = Challenge(
       id: state!.id,
       userId: state!.userId,
@@ -128,7 +136,7 @@ class ChallengeNotifier extends StateNotifier<Challenge?> {
 
     state = updatedChallenge;
 
-    // Mettre à jour dans Hive
+    // Mettre à jour dans Hive (même en mode démo pour la persistance locale)
     final box = Hive.box<Challenge>('challenges');
     await box.put(updatedChallenge.id, updatedChallenge);
 

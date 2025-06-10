@@ -200,8 +200,9 @@ class AssessmentResultScreen extends ConsumerWidget {
                   color: Colors.black54,
                   fontSize: 12,
                 ),
-                getTitles: (index) =>
-                    categories[index % categories.length].name,
+                getTitle: (index, angle) => RadarChartTitle(
+                  text: categories[index % categories.length].name,
+                ),
                 titlePositionPercentageOffset: 0.2,
                 dataSets: [
                   RadarDataSet(
@@ -346,7 +347,7 @@ class AssessmentResultScreen extends ConsumerWidget {
     if (challengeId.contains('detox')) {
       title = 'Digital Detox';
       description = 'Prenez une pause de 30 minutes sans écrans chaque jour';
-      icon = Icons.smartphone_off_outlined;
+      icon = Icons.phonelink_off_outlined;
     } else if (challengeId.contains('notification')) {
       title = 'Nettoyage de Notifications';
       description = 'Désactivez les notifications non essentielles';

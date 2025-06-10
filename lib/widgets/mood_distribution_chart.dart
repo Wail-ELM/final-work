@@ -52,9 +52,11 @@ class MoodDistributionChart extends StatelessWidget {
                     ),
                     Expanded(
                       flex: 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: _buildLegendItems(sections),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: _buildLegendItems(sections),
+                        ),
                       ),
                     ),
                   ],

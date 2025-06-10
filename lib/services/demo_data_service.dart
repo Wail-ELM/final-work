@@ -4,6 +4,7 @@ import '../models/challenge.dart';
 import '../models/challenge_category_adapter.dart';
 import '../models/screen_time_entry.dart';
 import 'package:uuid/uuid.dart';
+import '../models/assessment_model.dart';
 
 class DemoDataService {
   static const String _demoUserId = "demo-user-123";
@@ -165,6 +166,11 @@ class DemoDataService {
         isDone: false,
       ),
     ];
+  }
+
+  static List<UserAssessment> generateDemoAssessments() {
+    // Implémentation factice pour éviter les erreurs
+    return [];
   }
 
   /// Génère des notes de humeur réalistes
