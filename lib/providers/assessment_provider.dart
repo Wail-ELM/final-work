@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:social_balans/services/auth_service.dart'
+    hide authServiceProvider;
 import '../models/assessment_model.dart';
 import './auth_provider.dart';
 import '../services/user_data_service.dart';
@@ -7,10 +9,10 @@ import '../services/demo_data_service.dart';
 
 class AssessmentNotifier extends StateNotifier<List<UserAssessment>> {
   final AuthService _authService;
-  final UserDataService _userDataService;
   final Box<UserAssessment> _box;
 
-  AssessmentNotifier(this._authService, this._userDataService, this._box)
+  AssessmentNotifier(
+      this._authService, UserDataService userDataService, this._box)
       : super([]) {
     _loadAssessments();
   }
@@ -33,14 +35,7 @@ class AssessmentNotifier extends StateNotifier<List<UserAssessment>> {
       final assessments = _box.values
           .where((assessment) => assessment.userId == currentUser.id)
           .toList();
-
-      // Si des évaluations existent localement, les utiliser
-      if (assessments.isNotEmpty) {
-        state = assessments;
-      } else {
-        // Sinon, essayer de synchroniser depuis le serveur
-        await _syncFromServer();
-      }
+      state = assessments;
     } catch (e) {
       print('Erreur lors du chargement des évaluations: $e');
       state = [];
@@ -48,22 +43,22 @@ class AssessmentNotifier extends StateNotifier<List<UserAssessment>> {
   }
 
   Future<void> _syncFromServer() async {
-    final currentUser = _authService.currentUser;
-    if (currentUser == null) return;
+    // final currentUser = _authService.currentUser;
+    // if (currentUser == null) return;
 
-    try {
-      final assessments =
-          await _userDataService.getUserAssessments(currentUser.id);
+    // try {
+    //   final assessments =
+    //       await _userDataService.getUserAssessments(currentUser.id);
 
-      // Sauvegarder dans Hive
-      for (final assessment in assessments) {
-        await _box.put(assessment.id, assessment);
-      }
+    //   // Sauvegarder dans Hive
+    //   for (final assessment in assessments) {
+    //     await _box.put(assessment.id, assessment);
+    //   }
 
-      state = assessments;
-    } catch (e) {
-      print('Erreur lors de la synchronisation avec le serveur: $e');
-    }
+    //   state = assessments;
+    // } catch (e) {
+    //   print('Erreur lors de la synchronisation avec le serveur: $e');
+    // }
   }
 
   Future<void> saveAssessment(UserAssessment assessment) async {
@@ -75,10 +70,10 @@ class AssessmentNotifier extends StateNotifier<List<UserAssessment>> {
       state = [...state, assessment];
 
       // Synchroniser avec le serveur si connecté
-      final currentUser = _authService.currentUser;
-      if (currentUser != null && !DemoDataService.isDemoMode(currentUser.id)) {
-        await _userDataService.saveUserAssessment(assessment);
-      }
+      // final currentUser = _authService.currentUser;
+      // if (currentUser != null && !DemoDataService.isDemoMode(currentUser.id)) {
+      //   await _userDataService.saveUserAssessment(assessment);
+      // }
     } catch (e) {
       print('Erreur lors de la sauvegarde de l\'évaluation: $e');
       rethrow;
@@ -94,10 +89,10 @@ class AssessmentNotifier extends StateNotifier<List<UserAssessment>> {
       state = state.where((assessment) => assessment.id != id).toList();
 
       // Synchroniser avec le serveur si connecté
-      final currentUser = _authService.currentUser;
-      if (currentUser != null && !DemoDataService.isDemoMode(currentUser.id)) {
-        await _userDataService.deleteUserAssessment(id);
-      }
+      // final currentUser = _authService.currentUser;
+      // if (currentUser != null && !DemoDataService.isDemoMode(currentUser.id)) {
+      //   await _userDataService.deleteUserAssessment(id);
+      // }
     } catch (e) {
       print('Erreur lors de la suppression de l\'évaluation: $e');
       rethrow;

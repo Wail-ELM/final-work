@@ -97,10 +97,9 @@ final challengeProvider =
 });
 
 class ChallengeNotifier extends StateNotifier<Challenge?> {
-  ChallengeNotifier(this._challenge, this._authService, this._ref)
-      : super(_challenge);
+  ChallengeNotifier(Challenge? challenge, this._authService, this._ref)
+      : super(challenge);
 
-  final Challenge? _challenge;
   final AuthService _authService;
   final Ref _ref;
 

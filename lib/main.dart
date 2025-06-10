@@ -7,11 +7,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
-import 'screens/profile_screen.dart';
 
 import 'screens/modern_dashboard.dart'; // Import du nouveau dashboard
 import 'screens/challenges.dart';
@@ -20,9 +18,7 @@ import 'screens/suggestions.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/mood_entry_screen.dart'; // Added import for MoodEntryScreen
 // Hide potentially conflicting names from the service file if they are also defined in provider files
-import 'services/auth_service.dart' hide authServiceProvider, authStateProvider;
 import 'services/notification_service.dart'; // Import du service
-import 'models/badge.dart'; // Import the new Badge model
 
 // Hive-modellen
 import 'models/challenge.dart';
@@ -30,6 +26,7 @@ import 'models/mood_entry.dart';
 import 'models/challenge_category_adapter.dart';
 import 'models/screen_time_entry.dart';
 import 'core/design_system.dart'; // Import du nouveau design system
+import 'models/badge.dart';
 
 // Import providers needed for AppUsageService start/stop
 import 'providers/auth_provider.dart'; // Provides authStateProvider

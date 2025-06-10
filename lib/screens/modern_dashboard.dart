@@ -6,23 +6,6 @@ import '../providers/challenge_provider.dart';
 import '../providers/user_objective_provider.dart';
 import '../widgets/dashboard/index.dart';
 import '../core/design_system.dart';
-import '../widgets/progress_circle.dart';
-import '../widgets/challenge_card.dart';
-import '../models/challenge.dart';
-import '../widgets/weekly_insights_chart.dart';
-import '../screens/settings_screen.dart';
-import '../screens/mood_entry_screen.dart';
-import '../screens/suggestions.dart';
-import '../screens/profile_screen.dart';
-
-// Widgets modulaires
-import '../widgets/dashboard/dashboard_app_bar.dart';
-import '../widgets/dashboard/stats_grid.dart';
-import '../widgets/dashboard/objective_card.dart';
-import '../widgets/dashboard/mood_section.dart';
-import '../widgets/dashboard/challenges_section.dart';
-import '../widgets/dashboard/insights_section.dart';
-import '../widgets/dashboard/quote_card.dart';
 
 /// ModernDashboard est l'écran principal de l'application.
 /// Il affiche un aperçu des statistiques, de l'humeur, des défis et des insights de l'utilisateur.

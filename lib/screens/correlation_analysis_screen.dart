@@ -25,7 +25,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
           final correlationService = CorrelationService();
           final correlationData = correlationService.analyzeCorrelation(
             moodStats.recentEntries,
-            screenTimeData,
+            screenTimeData.values.toList(),
           );
 
           return SingleChildScrollView(
@@ -165,23 +165,18 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        interval: 1,
-                        getTitlesWidget: (value, meta) {
-                          const style = TextStyle(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          );
-                          return SideTitleWidget(
-                            axisSide: meta.axisSide,
-                            child: Text(
-                              '${value.toInt()}h',
-                              style: style,
-                            ),
-                          );
-                        }),
+                      showTitles: true,
+                      reservedSize: 30,
+                      interval: 1,
+                      getTitlesWidget: (value, meta) {
+                        final style = TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        );
+                        return Text('${value.toInt()}h', style: style);
+                      },
+                    ),
                   ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
@@ -190,17 +185,12 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                       getTitlesWidget: (value, meta) {
                         if (value % 1 != 0) return const SizedBox.shrink();
 
-                        return SideTitleWidget(
-                          axisSide: meta.axisSide,
-                          child: Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
+                        final style = const TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         );
+                        return Text(value.toInt().toString(), style: style);
                       },
                       reservedSize: 40,
                     ),

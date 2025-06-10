@@ -8,7 +8,6 @@ import 'package:social_balans/widgets/badge_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; // Added for User type
 import '../providers/auth_provider.dart';
 import '../services/user_data_service.dart';
-import '../widgets/profile_avatar.dart';
 import '../providers/challenge_provider.dart';
 import '../providers/user_objective_provider.dart';
 import '../models/challenge.dart'; // Import Challenge model for explicit typing
@@ -251,15 +250,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch providers for real-time updates
+    // Watch providers
+    final user = ref.watch(authServiceProvider).currentUser;
+
+    // This section is a good candidate for a separate provider if logic becomes complex
     final allChallenges = ref.watch(allChallengesProvider);
-    final completedChallenges = allChallenges.where((c) => c.isDone).toList();
-    final userObjective = ref.watch(userObjectiveProvider);
-    final avatarUrl = ref.watch(avatarUrlProvider);
-    // Initialize badge controller logic
-    ref.watch(badgeControllerProvider);
-    // Get the list of earned badges
-    final earnedBadges = ref.watch(badgesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -569,64 +564,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   _removeAvatar();
                 },
               ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBadgesGrid(List<Badge> badges) {
-    if (badges.isEmpty) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Center(
-            child: Text(
-              'Voltooi uitdagingen om je eerste badge te verdienen!',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-      ),
-      itemCount: badges.length,
-      itemBuilder: (context, index) {
-        return BadgeWidget(badge: badges[index]);
-      },
-    );
-  }
-
-  Widget _buildStatsCard(
-      int challengesCompleted, String objective, BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Statistieken',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Voltooide uitdagingen: $challengesCompleted',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Doel: $objective',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
           ],
         ),
       ),
