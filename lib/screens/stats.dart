@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../providers/mood_provider.dart';
 import '../providers/user_objective_provider.dart';
 import '../widgets/weekly_insights_chart.dart';
-import '../widgets/mood_distribution_chart.dart';
+import '../widgets/mood_history_chart.dart';
 import '../widgets/mood_trends_chart.dart';
 import '../widgets/app_usage_chart.dart';
 import '../widgets/total_screen_time_trend_chart.dart';
@@ -182,7 +182,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
                       'Gem. Stemming',
                       noMoodData ? 'N/A' : '${avgMood.toStringAsFixed(1)} / 5',
                       Icons.sentiment_satisfied_alt_outlined,
-                      AppDesignSystem.primaryPurple),
+                      AppDesignSystem.secondaryBlue),
                   _buildStatCard(
                       'Ingevoerd',
                       noMoodData ? '0' : '${filteredEntries.length}',
@@ -242,24 +242,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
           _buildPeriodSelector(),
           const SizedBox(height: AppDesignSystem.space24),
           if (filteredEntries.isNotEmpty) ...[
-            Text("Stemming Distributie", style: AppDesignSystem.heading3),
+            Text("Stemming Historiek", style: AppDesignSystem.heading3),
             const SizedBox(height: AppDesignSystem.space16),
-            ModernCard(child: MoodDistributionChart(entries: filteredEntries)),
+            const ModernCard(child: MoodHistoryChart()),
             const SizedBox(height: AppDesignSystem.space24),
             Text("Stemming Trends", style: AppDesignSystem.heading3),
             const SizedBox(height: AppDesignSystem.space16),
             ModernCard(
                 child: MoodTrendsChart(
                     entries: filteredEntries, period: _selectedPeriod)),
-          ] else
-            const Center(
-              child: Padding(
-                padding:
-                    EdgeInsets.symmetric(vertical: AppDesignSystem.space64),
-                child:
-                    Text("Geen stemmingsdata voor de geselecteerde periode."),
-              ),
-            ),
+          ],
         ],
       ),
     );

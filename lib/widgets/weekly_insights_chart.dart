@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:io' show Platform;
 import '../models/mood_entry.dart';
 import '../core/design_system.dart';
 import '../providers/user_objective_provider.dart';
@@ -30,38 +30,56 @@ class WeeklyInsightsChart extends ConsumerWidget {
 
     final weeklyScreenTimeAsync = ref.watch(weeklyScreenTimeDataProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      shrinkWrap: true,
+      physics: const ClampingScrollPhysics(),
       children: [
-        Text("Jouw Weekoverzicht", style: AppDesignSystem.heading3),
+        Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppDesignSystem.space16)
+                  .copyWith(top: AppDesignSystem.space16),
+          child: Text("Jouw Weekoverzicht", style: AppDesignSystem.heading3),
+        ),
         const SizedBox(height: AppDesignSystem.space8),
-        Text(
-          "Analyse van je humeur en schermtijd.",
-          style:
-              AppDesignSystem.body2.copyWith(color: AppDesignSystem.neutral500),
+        Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppDesignSystem.space16),
+          child: Text(
+            "Analyse van je humeur en schermtijd.",
+            style: AppDesignSystem.body2
+                .copyWith(color: AppDesignSystem.neutral500),
+          ),
         ),
         const SizedBox(height: AppDesignSystem.space24),
-        _buildMoodChart(context),
+        Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppDesignSystem.space16),
+          child: _buildMoodChart(context),
+        ),
         const SizedBox(height: AppDesignSystem.space32),
-        weeklyScreenTimeAsync.when(
-          data: (weeklyData) {
-            if (weeklyData.isEmpty || !Platform.isAndroid) {
-              return const SizedBox.shrink();
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildScreenTimeChart(context, weeklyData),
-                const SizedBox(height: AppDesignSystem.space24),
-                _buildInsightSummary(context, weeklyData),
-              ],
-            );
-          },
-          loading: () => const SizedBox(
-            height: 200,
-            child: Center(child: CircularProgressIndicator()),
+        Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppDesignSystem.space16),
+          child: weeklyScreenTimeAsync.when(
+            data: (weeklyData) {
+              if (weeklyData.isEmpty || kIsWeb) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildScreenTimeChart(context, weeklyData),
+                  const SizedBox(height: AppDesignSystem.space24),
+                  _buildInsightSummary(context, weeklyData),
+                ],
+              );
+            },
+            loading: () => const SizedBox(
+              height: 200,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, s) => const SizedBox.shrink(),
           ),
-          error: (e, s) => const SizedBox.shrink(),
         ),
       ],
     );
@@ -75,7 +93,7 @@ class WeeklyInsightsChart extends ConsumerWidget {
         Row(
           children: [
             const Icon(Icons.sentiment_very_satisfied_outlined,
-                color: AppDesignSystem.primaryBlue, size: 20),
+                color: AppDesignSystem.primaryGreen, size: 20),
             const SizedBox(width: AppDesignSystem.space8),
             Text("Humeur Trend",
                 style: AppDesignSystem.body1
@@ -130,7 +148,7 @@ class WeeklyInsightsChart extends ConsumerWidget {
                 LineChartBarData(
                   spots: spots,
                   isCurved: true,
-                  color: AppDesignSystem.primaryBlue,
+                  color: AppDesignSystem.primaryGreen,
                   barWidth: 4,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: true),
@@ -138,8 +156,8 @@ class WeeklyInsightsChart extends ConsumerWidget {
                     show: true,
                     gradient: LinearGradient(
                       colors: [
-                        AppDesignSystem.primaryBlue.withOpacity(0.3),
-                        AppDesignSystem.primaryBlue.withOpacity(0.0),
+                        AppDesignSystem.primaryGreen.withOpacity(0.3),
+                        AppDesignSystem.primaryGreen.withOpacity(0.0),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -223,7 +241,7 @@ class WeeklyInsightsChart extends ConsumerWidget {
 
   Widget _buildInsightSummary(
       BuildContext context, Map<DateTime, Duration> weeklyData) {
-    if (entries.isEmpty || weeklyData.isEmpty || !Platform.isAndroid) {
+    if (entries.isEmpty || weeklyData.isEmpty || kIsWeb) {
       return const SizedBox.shrink();
     }
 
@@ -244,14 +262,15 @@ class WeeklyInsightsChart extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppDesignSystem.space16),
       decoration: BoxDecoration(
-        color: AppDesignSystem.primaryBlue.withOpacity(0.05),
+        color: AppDesignSystem.primaryGreen.withOpacity(0.05),
         borderRadius: AppDesignSystem.borderRadiusMedium,
-        border: Border.all(color: AppDesignSystem.primaryBlue.withOpacity(0.1)),
+        border:
+            Border.all(color: AppDesignSystem.primaryGreen.withOpacity(0.1)),
       ),
       child: Row(
         children: [
           const Icon(Icons.lightbulb_outline_rounded,
-              color: AppDesignSystem.primaryBlue, size: 28),
+              color: AppDesignSystem.primaryGreen, size: 28),
           const SizedBox(width: AppDesignSystem.space12),
           Expanded(
             child: Text(

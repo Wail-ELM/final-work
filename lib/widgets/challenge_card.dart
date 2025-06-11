@@ -16,7 +16,7 @@ class ChallengeCard extends StatelessWidget {
   Color _getCategoryColor(ChallengeCategory category, BuildContext context) {
     switch (category) {
       case ChallengeCategory.screenTime:
-        return AppDesignSystem.primaryBlue;
+        return AppDesignSystem.secondaryBlue;
       case ChallengeCategory.focus:
         return AppDesignSystem.success;
       case ChallengeCategory.notifications:

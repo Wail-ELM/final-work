@@ -6,6 +6,7 @@ import '../models/mood_entry.dart';
 import '../models/screen_time_entry.dart';
 import '../models/challenge.dart';
 import 'package:path/path.dart' as p; // Added for path manipulation
+import 'package:social_balans/providers/auth_provider.dart';
 
 final supabaseClient = Supabase.instance.client;
 
@@ -44,7 +45,7 @@ class UserDataService {
 
       if (updates.length > 1) {
         // Only update if there's more than just updated_at
-      await _supabase.from('profiles').update(updates).eq('id', userId);
+        await _supabase.from('profiles').update(updates).eq('id', userId);
       }
     } catch (e) {
       throw _handleError(e);
@@ -384,3 +385,12 @@ final challengesProvider =
         );
   },
 );
+
+final profileDataProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final userDataService = ref.watch(userDataServiceProvider);
+  final user = ref.watch(authServiceProvider).currentUser;
+  if (user == null) {
+    throw Exception('Not logged in');
+  }
+  return await userDataService.getProfile(user.id);
+});

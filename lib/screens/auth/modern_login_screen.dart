@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design_system.dart';
 import '../../services/auth_service.dart';
@@ -107,7 +107,7 @@ class _ModernLoginScreenState extends ConsumerState<ModernLoginScreen>
         actions: [
           ModernButton(
             text: 'Sluiten',
-            isPrimary: false,
+            style: ButtonStyle.secondary,
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -274,7 +274,7 @@ class _ModernLoginScreenState extends ConsumerState<ModernLoginScreen>
                                     child: Text(
                                       'Wachtwoord vergeten?',
                                       style: AppDesignSystem.body2.copyWith(
-                                        color: AppDesignSystem.primaryBlue,
+                                        color: AppDesignSystem.primaryGreen,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -363,7 +363,7 @@ class _ModernLoginScreenState extends ConsumerState<ModernLoginScreen>
           focusedBorder: OutlineInputBorder(
             borderRadius: AppDesignSystem.borderRadiusMedium,
             borderSide: BorderSide(
-              color: AppDesignSystem.primaryBlue,
+              color: AppDesignSystem.primaryGreen,
               width: 2,
             ),
           ),

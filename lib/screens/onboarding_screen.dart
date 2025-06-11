@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io' show Platform;
 import '../services/notification_service.dart'; // Import NotificationService
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../core/design_system.dart'; // Import design system for wellness colors
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback? onDone;
@@ -22,28 +23,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Welkom bij Social Balans',
       description:
           'Jouw digitale welzijn, opnieuw in balans. Minder schermtijd, meer leven.',
-      color: Colors.blueAccent,
+      color: AppDesignSystem.primaryGreen,
     ),
     _OnboardingPageData(
       icon: Icons.nightlight_round,
       title: 'Minder schermtijd, meer rust',
       description:
           'Ontdek hoe kleine gewoontes en challenges je helpen om bewuster met technologie om te gaan.',
-      color: Colors.teal,
+      color: AppDesignSystem.secondaryBlue,
     ),
     _OnboardingPageData(
       icon: Icons.emoji_events,
       title: 'Persoonlijke uitdagingen',
       description:
           'Kies uit inspirerende uitdagingen, volg je voortgang en vier je successen.',
-      color: Colors.orange,
+      color: AppDesignSystem.warning,
     ),
     _OnboardingPageData(
       icon: Icons.notifications_active,
       title: 'Blijf op de hoogte',
       description:
           'Activeer notificaties voor herinneringen, pauzes en het behalen van je doelen. Mis niets belangrijks!',
-      color: Colors.green,
+      color: AppDesignSystem.success,
       isPermissionPage: true,
     ),
     _OnboardingPageData(
@@ -51,7 +52,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Inzicht & Motivatie',
       description:
           'Bekijk je statistieken, ontvang motiverende tips en blijf op koers voor een gezonder digitaal leven.',
-      color: Colors.purple,
+      color: AppDesignSystem.sageGreen,
     ),
   ];
 
@@ -89,6 +90,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppDesignSystem.neutral50,
       body: SafeArea(
         child: Column(
           children: [
@@ -100,21 +102,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, i) => _OnboardingPage(page: _pages[i]),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _pages.length,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
-                  width: _currentPage == i ? 24 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: _currentPage == i
-                        ? Theme.of(context).primaryColor
-                        : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(8),
+            // Modern page indicators
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _pages.length,
+                  (i) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: _currentPage == i ? 32 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      gradient: _currentPage == i
+                          ? AppDesignSystem.primaryGradient
+                          : null,
+                      color:
+                          _currentPage == i ? null : AppDesignSystem.neutral300,
+                      borderRadius:
+                          BorderRadius.circular(AppDesignSystem.radiusFull),
+                      boxShadow: _currentPage == i
+                          ? AppDesignSystem.shadowSmall
+                          : null,
+                    ),
                   ),
                 ),
               ),
@@ -131,28 +142,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           curve: Curves.ease,
                         );
                       },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppDesignSystem.neutral600,
+                      ),
                       child: const Text('Terug'),
                     ),
                   const Spacer(),
                   if (_pages[_currentPage].isPermissionPage)
-                    ElevatedButton(
+                    ModernButton(
+                      text: 'Notificaties activeren',
                       onPressed: _requestNotificationPermission,
-                      child: const Text('Notificaties activeren'),
+                      icon: Icons.notifications_active,
+                      style: ButtonStyle.success,
                     )
                   else if (_currentPage < _pages.length - 1)
-                    ElevatedButton(
+                    ModernButton(
+                      text: 'Volgende',
                       onPressed: () {
                         _controller.nextPage(
                           duration: const Duration(milliseconds: 400),
                           curve: Curves.ease,
                         );
                       },
-                      child: const Text('Volgende'),
+                      icon: Icons.arrow_forward,
                     ),
                   if (_currentPage == _pages.length - 1)
-                    ElevatedButton(
+                    ModernButton(
+                      text: 'Aan de slag!',
                       onPressed: _completeOnboarding,
-                      child: const Text('Aan de slag!'),
+                      icon: Icons.rocket_launch,
+                      style: ButtonStyle.success,
                     ),
                 ],
               ),
@@ -191,24 +210,44 @@ class _OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 48,
-            backgroundColor: page.color.withOpacity(0.15),
-            child: Icon(page.icon, size: 56, color: page.color),
+          // Modern icon with gradient background
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  page.color.withOpacity(0.2),
+                  page.color.withOpacity(0.1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: AppDesignSystem.shadowMedium,
+            ),
+            child: Icon(
+              page.icon,
+              size: 56,
+              color: page.color,
+            ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
           Text(
             page.title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: page.color,
-                ),
+            style: AppDesignSystem.heading2.copyWith(
+              color: page.color,
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             page.description,
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: AppDesignSystem.body1.copyWith(
+              color: AppDesignSystem.neutral600,
+              height: 1.6,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

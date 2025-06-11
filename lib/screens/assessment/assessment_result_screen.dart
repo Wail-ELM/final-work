@@ -42,7 +42,7 @@ class AssessmentResultScreen extends ConsumerWidget {
           Text(
             'Votre Analyse',
             style: AppDesignSystem.heading1.copyWith(
-              color: AppDesignSystem.primaryBlue,
+              color: AppDesignSystem.primaryGreen,
             ),
           ),
           const SizedBox(height: AppDesignSystem.space8),
@@ -134,7 +134,7 @@ class AssessmentResultScreen extends ConsumerWidget {
       ScoreCategory(
         name: 'Temps d\'écran',
         score: scores['screenTime'] ?? 0,
-        color: AppDesignSystem.primaryBlue,
+        color: AppDesignSystem.secondaryBlue,
         icon: Icons.phone_android,
       ),
       ScoreCategory(
@@ -206,8 +206,8 @@ class AssessmentResultScreen extends ConsumerWidget {
                 titlePositionPercentageOffset: 0.2,
                 dataSets: [
                   RadarDataSet(
-                    fillColor: AppDesignSystem.primaryBlue.withOpacity(0.2),
-                    borderColor: AppDesignSystem.primaryBlue,
+                    fillColor: AppDesignSystem.primaryGreen.withOpacity(0.2),
+                    borderColor: AppDesignSystem.primaryGreen,
                     borderWidth: 2,
                     entryRadius: 5,
                     dataEntries: [
@@ -388,12 +388,12 @@ class AssessmentResultScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(AppDesignSystem.space8),
             decoration: BoxDecoration(
-              color: AppDesignSystem.primaryBlue.withOpacity(0.1),
+              color: AppDesignSystem.primaryGreen.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppDesignSystem.radiusMedium),
             ),
             child: Icon(
               icon,
-              color: AppDesignSystem.primaryBlue,
+              color: AppDesignSystem.primaryGreen,
               size: 24,
             ),
           ),
@@ -438,7 +438,7 @@ class AssessmentResultScreen extends ConsumerWidget {
               Navigator.of(context).pushReplacementNamed('/challenges');
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppDesignSystem.primaryBlue,
+              backgroundColor: AppDesignSystem.primaryGreen,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(
                 vertical: AppDesignSystem.space16,

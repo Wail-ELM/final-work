@@ -82,7 +82,7 @@ class DashboardAppBar extends ConsumerWidget {
         ),
         child: const Icon(
           Icons.person,
-          color: AppDesignSystem.primaryBlue,
+          color: AppDesignSystem.primaryGreen,
         ),
       ),
     );

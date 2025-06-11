@@ -30,133 +30,56 @@ class ChallengesNotifier extends StateNotifier<List<Challenge>> {
 
     // Mode démo
     if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-      // Commencer par les challenges de démo par défaut
       final demoChallenges = DemoDataService.generateDemoChallenges();
-
-      // Chercher les versions modifiées dans Hive
       final List<Challenge> finalChallenges = [];
-
       for (final demoChallenge in demoChallenges) {
-        // Chercher une version mise à jour dans Hive
         final updatedChallenge = _box.get(demoChallenge.id);
         finalChallenges.add(updatedChallenge ?? demoChallenge);
       }
-
       state = finalChallenges;
       return;
     }
 
-    // Filtrer les challenges pour l'utilisateur actuel
     final userChallenges = _box.values
         .where((challenge) => challenge.userId == currentUser.id)
         .toList();
-
-    // Trier par date de création (plus récent en premier)
     userChallenges.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
     state = userChallenges;
   }
 
   Future<void> add(Challenge challenge) async {
     final currentUser = _authService.currentUser;
-
-    // Pas d'ajout en mode démo
     if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
       return;
     }
-
     await _box.put(challenge.id, challenge);
-    _loadChallenges();
+    // _loadChallenges() is called by the watcher, no need to call it manually.
   }
 
   Future<void> remove(String id) async {
     final currentUser = _authService.currentUser;
-
-    // Pas de suppression en mode démo
     if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
       return;
     }
-
     await _box.delete(id);
-    _loadChallenges();
   }
 
   Future<void> update(Challenge challenge) async {
-    final currentUser = _authService.currentUser;
-
-    // Pas de modification en mode démo
-    if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-      return;
-    }
-
     await _box.put(challenge.id, challenge);
-    _loadChallenges();
+  }
+
+  Future<void> toggleDone(String challengeId) async {
+    final challenge = state.firstWhere((c) => c.id == challengeId,
+        orElse: () => _box.get(challengeId)!);
+
+    final updatedChallenge = challenge.copyWith(
+      isDone: !challenge.isDone,
+      updatedAt: DateTime.now(),
+    );
+    await update(updatedChallenge);
   }
 
   void refresh() {
     _loadChallenges();
-  }
-}
-
-// Provider pour un challenge spécifique
-final challengeProvider =
-    StateNotifierProvider.family<ChallengeNotifier, Challenge?, String>(
-        (ref, id) {
-  final challenges = ref.watch(allChallengesProvider);
-  final challenge = challenges.where((c) => c.id == id).firstOrNull;
-  final authService = ref.watch(authServiceProvider);
-  return ChallengeNotifier(challenge, authService, ref);
-});
-
-class ChallengeNotifier extends StateNotifier<Challenge?> {
-  ChallengeNotifier(Challenge? challenge, this._authService, this._ref)
-      : super(challenge);
-
-  final AuthService _authService;
-  final Ref _ref;
-
-  Future<void> toggleDone() async {
-    if (state == null) return;
-
-    final currentUser = _authService.currentUser;
-
-    // En mode démo, permettre les modifications locales
-    final updatedChallenge = Challenge(
-      id: state!.id,
-      userId: state!.userId,
-      title: state!.title,
-      description: state!.description,
-      category: state!.category,
-      startDate: state!.startDate,
-      endDate: state!.endDate,
-      createdAt: state!.createdAt,
-      updatedAt: DateTime.now(),
-      isDone: !state!.isDone,
-    );
-
-    state = updatedChallenge;
-
-    // Mettre à jour dans Hive (même en mode démo pour la persistance locale)
-    final box = Hive.box<Challenge>('challenges');
-    await box.put(updatedChallenge.id, updatedChallenge);
-
-    // Rafraîchir la liste globale
-    _ref.read(allChallengesProvider.notifier).refresh();
-  }
-
-  Future<void> updateChallenge(Challenge newChallenge) async {
-    final currentUser = _authService.currentUser;
-
-    // Pas de modification en mode démo
-    if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-      return;
-    }
-
-    state = newChallenge;
-
-    final box = Hive.box<Challenge>('challenges');
-    await box.put(newChallenge.id, newChallenge);
-
-    _ref.read(allChallengesProvider.notifier).refresh();
   }
 }

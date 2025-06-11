@@ -316,7 +316,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
             value: (_currentPage + 1) / _questions.length,
             backgroundColor: Colors.grey.shade200,
             valueColor:
-                AlwaysStoppedAnimation<Color>(AppDesignSystem.primaryBlue),
+                AlwaysStoppedAnimation<Color>(AppDesignSystem.primaryGreen),
             minHeight: 6,
             borderRadius: BorderRadius.circular(AppDesignSystem.radiusSmall),
           ),
@@ -369,18 +369,19 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
         padding: const EdgeInsets.all(AppDesignSystem.space16),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppDesignSystem.primaryBlue.withOpacity(0.1)
+              ? AppDesignSystem.primaryGreen.withOpacity(0.1)
               : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(AppDesignSystem.radiusMedium),
           border: Border.all(
-            color:
-                isSelected ? AppDesignSystem.primaryBlue : Colors.grey.shade300,
+            color: isSelected
+                ? AppDesignSystem.primaryGreen
+                : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppDesignSystem.primaryBlue.withOpacity(0.1),
+                    color: AppDesignSystem.primaryGreen.withOpacity(0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -395,11 +396,11 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isSelected
-                    ? AppDesignSystem.primaryBlue
+                    ? AppDesignSystem.primaryGreen
                     : Colors.grey.shade200,
                 border: Border.all(
                   color: isSelected
-                      ? AppDesignSystem.primaryBlue
+                      ? AppDesignSystem.primaryGreen
                       : Colors.grey.shade400,
                 ),
               ),
@@ -418,7 +419,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
                 style: AppDesignSystem.body1.copyWith(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected
-                      ? AppDesignSystem.primaryBlue
+                      ? AppDesignSystem.primaryGreen
                       : Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
@@ -471,7 +472,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
           ElevatedButton(
             onPressed: _isSubmitting ? null : _nextPage,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppDesignSystem.primaryBlue,
+              backgroundColor: AppDesignSystem.primaryGreen,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppDesignSystem.space20,

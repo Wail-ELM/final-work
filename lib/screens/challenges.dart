@@ -147,7 +147,7 @@ class _ChallengesList extends ConsumerWidget {
         return ChallengeCard(
           challenge: challenge,
           onToggle: () =>
-              ref.read(challengeProvider(challenge.id).notifier).toggleDone(),
+              ref.read(allChallengesProvider.notifier).toggleDone(challenge.id),
         );
       },
     );

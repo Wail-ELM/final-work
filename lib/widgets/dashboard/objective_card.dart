@@ -18,8 +18,8 @@ class ObjectiveCard extends StatelessWidget {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        AppDesignSystem.primaryPurple,
-        AppDesignSystem.primaryBlue,
+        AppDesignSystem.primaryGreen,
+        AppDesignSystem.secondaryBlue,
       ],
     );
 

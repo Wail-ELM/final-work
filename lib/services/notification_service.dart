@@ -2,8 +2,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import '../providers/user_preferences_provider.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
@@ -17,6 +17,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
   GlobalKey<NavigatorState>? _navigatorKey;
+  bool _isInitialized = false;
 
   void setNavigatorKey(GlobalKey<NavigatorState> key) {
     _navigatorKey = key;
@@ -27,7 +28,7 @@ class NotificationService {
     try {
       tz.setLocalLocation(tz.getLocation('Europe/Brussels'));
     } catch (e) {
-      print('Failed to set local location: $e. Using UTC as fallback.');
+      debugPrint('Failed to set local location: $e. Using UTC as fallback.');
       tz.setLocalLocation(tz.UTC);
     }
 
@@ -53,22 +54,16 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse:
           _onDidReceiveBackgroundNotificationResponse,
     );
-
-    final prefs = await SharedPreferences.getInstance();
-    final notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
-
-    if (notificationsEnabled) {
-      await _scheduleDefaultNotifications();
-    }
+    _isInitialized = true;
   }
 
   void _onDidReceiveNotificationResponse(NotificationResponse response) {
-    print('Notification Response: Payload: ${response.payload}');
+    debugPrint('Notification Response: Payload: ${response.payload}');
     if (response.payload != null && response.payload!.isNotEmpty) {
       if (_navigatorKey?.currentState != null) {
         _navigatorKey!.currentState!.pushNamed(response.payload!);
       } else {
-        print(
+        debugPrint(
             'NavigatorKey not set or no current state, cannot navigate from notification.');
       }
     }
@@ -77,7 +72,8 @@ class NotificationService {
   @pragma('vm:entry-point')
   static void _onDidReceiveBackgroundNotificationResponse(
       NotificationResponse response) {
-    print('Background Notification Response: Payload: ${response.payload}');
+    debugPrint(
+        'Background Notification Response: Payload: ${response.payload}');
   }
 
   Future<bool> requestIOSPermissions() async {
@@ -125,30 +121,91 @@ class NotificationService {
     required int id,
     required String title,
     required String body,
-    required DateTime scheduledDateTime,
+    required tz.TZDateTime scheduledDateTime,
     String? payload,
-    String? channelId = 'social_balans_scheduled_channel',
-    String? channelName = 'Social Balans Geplande Meldingen',
-    String? channelDescription = 'Kanaal voor geplande Social Balans meldingen',
+    String channelId = 'social_balans_scheduled_channel',
+    String channelName = 'Social Balans Geplande Meldingen',
+    String channelDescription = 'Kanaal voor geplande Social Balans meldingen',
   }) async {
     await _notificationsPlugin.zonedSchedule(
       id,
       title,
       body,
-      tz.TZDateTime.from(scheduledDateTime, tz.local),
+      scheduledDateTime,
       NotificationDetails(
         android: AndroidNotificationDetails(
-          channelId!,
-          channelName!,
+          channelId,
+          channelName,
           channelDescription: channelDescription,
           importance: Importance.max,
           priority: Priority.high,
         ),
         iOS: const DarwinNotificationDetails(
-            presentSound: true, presentBadge: true, presentAlert: true),
+          presentSound: true,
+          presentBadge: true,
+          presentAlert: true,
+        ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       payload: payload,
+    );
+  }
+
+  Future<void> updateAllScheduledNotifications(UserPreferences prefs) async {
+    if (!_isInitialized) return;
+    await cancelAllNotifications();
+
+    if (!prefs.notificationsEnabled) {
+      debugPrint(
+          'Notifications are disabled. All scheduled notifications cancelled.');
+      return;
+    }
+
+    if (prefs.dailyReminderEnabled) {
+      await _scheduleDailyMoodReminder(prefs.dailyReminderTime);
+    }
+
+    // In the future, you can re-enable these
+    // if (prefs.challengeUpdatesEnabled) {
+    //   await _scheduleChallengeNotifications();
+    // }
+  }
+
+  Future<void> _scheduleDailyMoodReminder(TimeOfDay reminderTime) async {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      reminderTime.hour,
+      reminderTime.minute,
+    );
+
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    await scheduleNotification(
+      id: 0,
+      title: 'Hoe voel je je vandaag?',
+      body: 'Neem even de tijd om je humeur in te voeren.',
+      scheduledDateTime: scheduledDate,
+      payload: '/mood-entry',
+      channelId: 'daily_mood_reminder',
+      channelName: 'Dagelijkse Humeur Herinnering',
+      channelDescription: 'Herinnering om je dagelijkse humeur te loggen.',
+    );
+
+    debugPrint('Daily mood reminder scheduled for: $scheduledDate');
+  }
+
+  Future<void> showTestNotification() async {
+    await showSimpleNotification(
+      id: 999,
+      title: '🌱 Test Notificatie',
+      body: 'Je notificaties werken perfect!',
+      payload: '/profile',
     );
   }
 
@@ -157,193 +214,8 @@ class NotificationService {
   }
 
   Future<void> cancelAllNotifications() async {
+    if (!_isInitialized) return;
     await _notificationsPlugin.cancelAll();
-  }
-
-  Future<void> _scheduleDefaultNotifications() async {
-    await _scheduleDailyMoodReminder();
-    await _scheduleBreakReminders();
-    await _scheduleGoalReminders();
-  }
-
-  Future<void> _scheduleDailyMoodReminder() async {
-    const androidDetails = AndroidNotificationDetails(
-      'mood_reminder',
-      'Humeur Rappel',
-      channelDescription: 'Rappels pour entrer votre humeur quotidienne',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    final now = DateTime.now();
-    var scheduledDate = DateTime(now.year, now.month, now.day, 20, 0);
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    await _notificationsPlugin.zonedSchedule(
-      0,
-      'Hoe voel je je vandaag?',
-      'Neem even de tijd om je humeur in te voeren.',
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      details,
-      payload: '/mood-entry',
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
-  }
-
-  Future<void> _scheduleBreakReminders() async {
-    const androidDetails = AndroidNotificationDetails(
-      'break_reminder',
-      'Pauze Rappel',
-      channelDescription: 'Rappels pour prendre des pauses',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    final now = DateTime.now();
-    var scheduledDate = DateTime(now.year, now.month, now.day, 9, 0);
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-    for (var i = 0; i < 7; i++) {
-      final time = scheduledDate.add(Duration(hours: i * 2));
-      if (time.hour < 21) {
-        await _notificationsPlugin.zonedSchedule(
-          i + 1,
-          'Tijd voor een pauze!',
-          'Neem even de tijd om je ogen te laten rusten.',
-          tz.TZDateTime.from(time, tz.local),
-          details,
-          payload: '/home',
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        );
-      }
-    }
-  }
-
-  Future<void> _scheduleGoalReminders() async {
-    const androidDetails = AndroidNotificationDetails(
-      'goal_reminder',
-      'Doel Rappel',
-      channelDescription: 'Rappels pour vos objectifs',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    final now = DateTime.now();
-    var scheduledDate = DateTime(now.year, now.month, now.day, 10, 0);
-    while (scheduledDate.weekday != DateTime.monday) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 7));
-    }
-
-    await _notificationsPlugin.zonedSchedule(
-      8,
-      'Nieuwe week, nieuwe doelen!',
-      'Bekijk je doelen voor deze week.',
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      details,
-      payload: '/challenges',
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
-  }
-
-  Future<void> updateNotificationSettings(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notifications_enabled', enabled);
-
-    if (enabled) {
-      await _scheduleDefaultNotifications();
-    } else {
-      await _notificationsPlugin.cancelAll();
-    }
-  }
-
-  Future<void> showCustomNotification({
-    required String title,
-    required String body,
-    String? payload,
-  }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'custom_notification',
-      'Custom Notifications',
-      channelDescription: 'Notifications personnalisées',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _notificationsPlugin.show(
-      DateTime.now().millisecond,
-      title,
-      body,
-      details,
-      payload: payload,
-    );
-  }
-
-  Future<void> showScreenTimeLimitNotification(
-      Duration goal, Duration actual) async {
-    final goalHours = goal.inHours;
-    final goalMinutes = goal.inMinutes % 60;
-    final actualHours = actual.inHours;
-    final actualMinutes = actual.inMinutes % 60;
-
-    final String goalText = "${goalHours}u ${goalMinutes}m";
-    final String actualText = "${actualHours}u ${actualMinutes}m";
-
-    await showSimpleNotification(
-      id: 100, // Use a unique ID for this type of notification
-      title: 'Schermtijd Limiet Bereikt',
-      body:
-          'Je hebt je dagelijkse doel van $goalText overschreden. Huidige tijd: $actualText.',
-      payload: '/stats', // Navigate to stats screen on tap
-    );
+    debugPrint('All scheduled notifications have been cancelled.');
   }
 }

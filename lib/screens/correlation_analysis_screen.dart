@@ -4,38 +4,42 @@ import 'package:fl_chart/fl_chart.dart';
 import '../core/design_system.dart';
 import '../providers/mood_provider.dart';
 import '../providers/user_objective_provider.dart';
-import '../services/correlation_service.dart';
+import '../services/real_correlation_service.dart';
 
 class CorrelationAnalysisScreen extends ConsumerWidget {
   const CorrelationAnalysisScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final moodStats = ref.watch(moodStatsProvider);
-    final screenTimeAsync = ref.watch(weeklyScreenTimeDataProvider);
+    final moodEntries = ref.watch(moodStatsProvider).recentEntries;
+    final weeklyScreenTime = ref.watch(weeklyScreenTimeDataProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Analyse de Corrélation'),
         elevation: 0,
       ),
-      body: screenTimeAsync.when(
+      body: weeklyScreenTime.when(
         data: (screenTimeData) {
-          // Créer un service de corrélation pour analyser les données
-          final correlationService = CorrelationService();
-          final correlationData = correlationService.analyzeCorrelation(
-            moodStats.recentEntries,
-            screenTimeData.values.toList(),
+          final correlationService = RealCorrelationService();
+          final correlationResult = correlationService.analyzeRealCorrelation(
+            moodEntries: moodEntries,
+            screenTimeData: screenTimeData,
           );
+
+          if (correlationResult['isEmpty'] as bool) {
+            return _buildEmptyState(
+                context, correlationResult['recommendations'] as List<String>);
+          }
 
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(context),
-                _buildCorrelationChart(context, correlationData),
-                _buildInsights(context, correlationData),
-                _buildRecommendations(context, correlationData),
+                _buildCorrelationChart(context, correlationResult),
+                _buildInsights(context, correlationResult),
+                _buildRecommendations(context, correlationResult),
                 const SizedBox(height: AppDesignSystem.space24),
               ],
             ),
@@ -43,7 +47,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
-          child: Text('Erreur lors du chargement des données: $error'),
+          child: Text('Erreur: $error'),
         ),
       ),
     );
@@ -58,7 +62,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
           Text(
             'Impact de vos habitudes numériques',
             style: AppDesignSystem.heading2.copyWith(
-              color: AppDesignSystem.primaryBlue,
+              color: AppDesignSystem.primaryGreen,
             ),
           ),
           const SizedBox(height: AppDesignSystem.space8),
@@ -80,8 +84,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
   Widget _buildCorrelationChart(
       BuildContext context, Map<String, dynamic> correlationData) {
     final correlation = correlationData['correlation'] as double;
-    final moodData = correlationData['moodData'] as List<FlSpot>;
-    final screenTimeData = correlationData['screenTimeData'] as List<FlSpot>;
+    final spots = correlationData['correlationSpots'] as List<FlSpot>;
     final trendlineData = correlationData['trendlineData'] as List<FlSpot>;
 
     return Container(
@@ -106,13 +109,13 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(AppDesignSystem.space8),
                 decoration: BoxDecoration(
-                  color: AppDesignSystem.primaryBlue.withOpacity(0.1),
+                  color: AppDesignSystem.primaryGreen.withOpacity(0.1),
                   borderRadius:
                       BorderRadius.circular(AppDesignSystem.radiusMedium),
                 ),
                 child: Icon(
                   Icons.insights,
-                  color: AppDesignSystem.primaryBlue,
+                  color: AppDesignSystem.primaryGreen,
                   size: 24,
                 ),
               ),
@@ -205,41 +208,28 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                 minY: 1,
                 maxY: 5,
                 lineBarsData: [
-                  // Points pour chaque jour
                   LineChartBarData(
-                    spots: screenTimeData,
+                    spots: spots,
                     isCurved: false,
                     color: Colors.transparent,
-                    barWidth: 0,
-                    isStrokeCapRound: true,
                     dotData: FlDotData(
                       show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: 6,
-                          color: AppDesignSystem.primaryBlue.withOpacity(0.7),
-                          strokeWidth: 0,
+                          color: AppDesignSystem.secondaryBlue.withOpacity(0.7),
                         );
                       },
                     ),
                   ),
-                  // Ligne de tendance
                   LineChartBarData(
                     spots: trendlineData,
                     isCurved: false,
-                    color: correlation < 0
+                    color: correlation < -0.1
                         ? AppDesignSystem.error
                         : AppDesignSystem.success,
                     barWidth: 2,
-                    isStrokeCapRound: true,
                     dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: (correlation < 0
-                              ? AppDesignSystem.error
-                              : AppDesignSystem.success)
-                          .withOpacity(0.1),
-                    ),
                   ),
                 ],
               ),
@@ -254,7 +244,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                 height: 12,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppDesignSystem.primaryBlue,
+                  color: AppDesignSystem.secondaryBlue,
                 ),
               ),
               const SizedBox(width: AppDesignSystem.space8),
@@ -264,7 +254,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                 width: 12,
                 height: 3,
                 decoration: BoxDecoration(
-                  color: correlation < 0
+                  color: correlation < -0.1
                       ? AppDesignSystem.error
                       : AppDesignSystem.success,
                 ),
@@ -273,7 +263,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
               Text(
                 'Ligne de tendance',
                 style: TextStyle(
-                  color: correlation < 0
+                  color: correlation < -0.1
                       ? AppDesignSystem.error
                       : AppDesignSystem.success,
                 ),
@@ -428,13 +418,13 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(AppDesignSystem.space8),
                 decoration: BoxDecoration(
-                  color: AppDesignSystem.primaryBlue.withOpacity(0.1),
+                  color: AppDesignSystem.primaryGreen.withOpacity(0.1),
                   borderRadius:
                       BorderRadius.circular(AppDesignSystem.radiusMedium),
                 ),
                 child: Icon(
                   icon,
-                  color: AppDesignSystem.primaryBlue,
+                  color: AppDesignSystem.primaryGreen,
                   size: 20,
                 ),
               ),
@@ -562,7 +552,6 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
           const SizedBox(height: AppDesignSystem.space16),
           OutlinedButton(
             onPressed: () {
-              // Naviguer vers l'écran des challenges
               Navigator.of(context).pushNamed('/challenges');
             },
             style: OutlinedButton.styleFrom(
@@ -600,7 +589,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
             width: 18,
             height: 18,
             decoration: BoxDecoration(
-              color: AppDesignSystem.primaryBlue,
+              color: AppDesignSystem.primaryGreen,
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -617,6 +606,34 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, List<String> recommendations) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDesignSystem.space32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.analytics_outlined,
+                size: 64, color: AppDesignSystem.neutral400),
+            const SizedBox(height: AppDesignSystem.space16),
+            Text(
+              'Analyse en attente',
+              style: AppDesignSystem.heading3,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDesignSystem.space8),
+            Text(
+              recommendations.join('\n'),
+              style: AppDesignSystem.body1
+                  .copyWith(color: AppDesignSystem.neutral500),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

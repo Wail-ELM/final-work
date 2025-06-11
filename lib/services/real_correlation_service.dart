@@ -1,0 +1,175 @@
+import 'dart:math';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:collection/collection.dart';
+import '../models/mood_entry.dart';
+import '../models/screen_time_entry.dart';
+
+/// Service d'analyse statistique pour calculer les corrélations réelles
+/// entre les données de l'utilisateur.
+class RealCorrelationService {
+  /// Analyse la corrélation entre les entrées d'humeur et les données de temps d'écran.
+  Map<String, dynamic> analyzeRealCorrelation({
+    required List<MoodEntry> moodEntries,
+    required Map<DateTime, Duration> screenTimeData,
+  }) {
+    if (moodEntries.length < 3 || screenTimeData.length < 3) {
+      return _getEmptyResult('Données insuffisantes pour l\'analyse.');
+    }
+
+    // 1. Préparer les données pour l'analyse
+    final (moodValues, screenTimeValues) =
+        _prepareDataForAnalysis(moodEntries, screenTimeData);
+
+    if (moodValues.length < 3) {
+      return _getEmptyResult(
+          'Pas assez de jours avec des données correspondantes.');
+    }
+
+    // 2. Calculer le coefficient de corrélation de Pearson
+    final double correlation =
+        _calculatePearsonCorrelation(moodValues, screenTimeValues);
+
+    // 3. Calculer la ligne de tendance (régression linéaire simple)
+    final (slope, intercept) =
+        _calculateLinearRegression(screenTimeValues, moodValues);
+
+    // 4. Créer les points pour le graphique
+    final List<FlSpot> spots = IterableZip([screenTimeValues, moodValues])
+        .map((e) => FlSpot(e[0], e[1]))
+        .toList();
+
+    // 5. Créer les points pour la ligne de tendance
+    final double minX = screenTimeValues.reduce(min);
+    final double maxX = screenTimeValues.reduce(max);
+    final List<FlSpot> trendlineSpots = [
+      FlSpot(minX, slope * minX + intercept),
+      FlSpot(maxX, slope * maxX + intercept),
+    ];
+
+    // 6. Analyser l'impact et générer des recommandations
+    final insights = _generateInsights(correlation, spots, screenTimeData);
+
+    return {
+      'correlation': correlation.isNaN ? 0.0 : correlation,
+      'trendlineData': trendlineSpots,
+      'correlationSpots': spots,
+      'significantApps': insights['significantApps'],
+      'optimalScreenTime': insights['optimalScreenTime'],
+      'recommendations': insights['recommendations'],
+      'isEmpty': false,
+    };
+  }
+
+  /// Prépare et aligne les données d'humeur et de temps d'écran par jour.
+  (List<double> mood, List<double> screenTime) _prepareDataForAnalysis(
+      List<MoodEntry> moodEntries, Map<DateTime, Duration> screenTimeData) {
+    final Map<DateTime, double> dailyMoods = {};
+    for (var entry in moodEntries) {
+      final day = DateTime(
+          entry.createdAt.year, entry.createdAt.month, entry.createdAt.day);
+      dailyMoods.update(day, (value) => (value + entry.moodValue) / 2,
+          ifAbsent: () => entry.moodValue.toDouble());
+    }
+
+    final List<double> moodValues = [];
+    final List<double> screenTimeValues = [];
+
+    dailyMoods.forEach((date, mood) {
+      final screenTimeDate = DateTime(date.year, date.month, date.day);
+      if (screenTimeData.containsKey(screenTimeDate)) {
+        moodValues.add(mood);
+        // Convertir en heures pour l'analyse
+        screenTimeValues.add(screenTimeData[screenTimeDate]!.inMinutes / 60.0);
+      }
+    });
+
+    return (moodValues, screenTimeValues);
+  }
+
+  /// Calcule le coefficient de corrélation de Pearson.
+  /// Résultat entre -1 (corrélation négative parfaite) et 1 (corrélation positive parfaite).
+  double _calculatePearsonCorrelation(List<double> x, List<double> y) {
+    if (x.length != y.length || x.isEmpty) return 0.0;
+
+    final double meanX = x.average;
+    final double meanY = y.average;
+
+    double numerator = 0.0;
+    double sumXSquared = 0.0;
+    double sumYSquared = 0.0;
+
+    for (int i = 0; i < x.length; i++) {
+      final diffX = x[i] - meanX;
+      final diffY = y[i] - meanY;
+      numerator += diffX * diffY;
+      sumXSquared += pow(diffX, 2);
+      sumYSquared += pow(diffY, 2);
+    }
+
+    final double denominator = sqrt(sumXSquared * sumYSquared);
+    return denominator == 0 ? 0 : numerator / denominator;
+  }
+
+  /// Calcule la pente (slope) et l'ordonnée à l'origine (intercept) pour une régression linéaire.
+  (double slope, double intercept) _calculateLinearRegression(
+      List<double> x, List<double> y) {
+    final n = x.length;
+    final sumX = x.sum;
+    final sumY = y.sum;
+    final sumXY = IterableZip([x, y]).map((e) => e[0] * e[1]).sum;
+    final sumX2 = x.map((e) => e * e).sum;
+
+    final slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    final intercept = (sumY - slope * sumX) / n;
+
+    return (slope.isNaN ? 0.0 : slope, intercept.isNaN ? y.average : intercept);
+  }
+
+  /// Génère des insights et recommandations basés sur les résultats.
+  Map<String, dynamic> _generateInsights(double correlation, List<FlSpot> spots,
+      Map<DateTime, Duration> screenTimeData) {
+    // Pour l'instant, on retourne des recommandations génériques.
+    // Une future version pourrait analyser les applications spécifiques.
+    List<String> recommendations = [];
+    if (correlation < -0.3) {
+      recommendations.add(
+          'Un temps d\'écran élevé semble correspondre à une humeur plus basse.');
+      recommendations.add(
+          'Essayez de définir des limites pour les applications les plus utilisées.');
+    } else if (correlation > 0.3) {
+      recommendations.add(
+          'Votre utilisation des écrans ne semble pas nuire à votre humeur.');
+      recommendations.add(
+          'Continuez à utiliser les applications qui vous apportent de la positivité.');
+    } else {
+      recommendations.add(
+          'Votre humeur et votre temps d\'écran ne semblent pas fortement liés.');
+    }
+
+    // Estimer le temps d'écran optimal (simplifié)
+    final optimalSpot =
+        spots.isNotEmpty ? spots.reduce((a, b) => a.y > b.y ? a : b) : null;
+
+    return {
+      'significantApps': [], // TODO: Implémenter l'analyse par application
+      'optimalScreenTime': optimalSpot?.x.round() ?? 3,
+      'recommendations': recommendations,
+    };
+  }
+
+  /// Retourne un résultat vide avec un message explicatif.
+  Map<String, dynamic> _getEmptyResult(String reason) {
+    return {
+      'correlation': 0.0,
+      'trendlineData': <FlSpot>[],
+      'correlationSpots': <FlSpot>[],
+      'significantApps': [],
+      'optimalScreenTime': 0,
+      'recommendations': [
+        reason,
+        'Continuez à enregistrer votre humeur et votre temps d\'écran pour une analyse plus précise.'
+      ],
+      'isEmpty': true,
+    };
+  }
+}

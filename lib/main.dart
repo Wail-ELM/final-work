@@ -18,8 +18,10 @@ import 'screens/suggestions.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/mood_entry_screen.dart'; // Added import for MoodEntryScreen
 import 'screens/profile_screen.dart'; // Import the profile screen
+import 'screens/settings/notification_settings_screen.dart'; // Import notification settings screen
 // Hide potentially conflicting names from the service file if they are also defined in provider files
 import 'services/notification_service.dart'; // Import du service
+import 'services/smart_challenge_tracker.dart'; // Importer le nouveau service
 
 // Hive-modellen
 import 'models/challenge.dart';
@@ -31,10 +33,13 @@ import 'models/badge.dart';
 
 // Import providers needed for AppUsageService start/stop
 import 'providers/auth_provider.dart'; // Provides authStateProvider
-import 'providers/user_objective_provider.dart'; // Provides appUsageServiceProvider
-import 'providers/theme_provider.dart'; // Import the new themeModeProvider
+import 'providers/user_objective_provider.dart'
+    hide
+        userPreferencesProvider,
+        UserPreferences; // Provides appUsageServiceProvider
 import 'providers/mood_provider.dart'; // Provides moodStatsProvider
 import 'providers/badge_provider.dart'; // Import badge provider to activate the badge system
+import 'providers/user_preferences_provider.dart'; // Import userPreferencesProvider
 
 // Clé globale pour le Navigator (optionnel, mais utile pour les notifs)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -99,12 +104,20 @@ void main() async {
   await Hive.openBox<ScreenTimeEntry>('screen_time');
   await Hive.openBox<Badge>('badges'); // Open the new badges box
 
-  // Initialiser le service de notification
-  final notificationService = NotificationService();
+  // Create a ProviderContainer to initialize services before the app runs.
+  final container = ProviderContainer();
+
+  // Initialiser le service de notification via the provider
+  final notificationService = container.read(notificationServiceProvider);
   await notificationService.init();
   notificationService.setNavigatorKey(navigatorKey); // Set the navigator key
 
-  runApp(const ProviderScope(child: RootDecider()));
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const RootDecider(),
+    ),
+  );
 }
 
 class RootDecider extends ConsumerStatefulWidget {
@@ -144,14 +157,14 @@ class _RootDeciderState extends ConsumerState<RootDecider> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
+    final userPrefs = ref.watch(userPreferencesProvider);
 
     // Show a splash screen while checking the onboarding status.
     if (_onboardingComplete == null) {
       return MaterialApp(
         theme: AppDesignSystem.lightTheme,
         darkTheme: AppDesignSystem.darkTheme,
-        themeMode: themeMode,
+        themeMode: userPrefs.darkMode ? ThemeMode.dark : ThemeMode.light,
         home: const ModernSplashScreen(),
       );
     }
@@ -166,7 +179,7 @@ class _RootDeciderState extends ConsumerState<RootDecider> {
         debugShowCheckedModeBanner: false,
         theme: AppDesignSystem.lightTheme,
         darkTheme: AppDesignSystem.darkTheme,
-        themeMode: themeMode,
+        themeMode: userPrefs.darkMode ? ThemeMode.dark : ThemeMode.light,
         home: OnboardingScreen(onDone: _handleOnboardingDone),
       );
     }
@@ -178,10 +191,11 @@ class SocialBalansAppMain extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
-    final themeMode = ref.watch(themeModeProvider); // Get themeMode
+    final userPrefs = ref.watch(userPreferencesProvider);
 
-    // IMPORTANT: Activate the badge system by reading the controller
+    // IMPORTANT: Activer les systèmes en arrière-plan
     ref.read(badgeControllerProvider);
+    ref.read(smartChallengeTrackerProvider); // Activer le tracker de défis
 
     // Listen to authState changes (this logic is already present and correct)
     ref.listen<AsyncValue<Session?>>(authStateProvider, (previous, next) {
@@ -198,13 +212,23 @@ class SocialBalansAppMain extends ConsumerWidget {
       }
     });
 
+    // Listen for notification settings changes and update schedule
+    ref.listen<UserPreferences>(userPreferencesProvider, (previous, next) {
+      if (previous != next) {
+        final notificationService = ref.read(notificationServiceProvider);
+        notificationService.updateAllScheduledNotifications(next);
+      }
+    });
+
     return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'Social Balans',
       debugShowCheckedModeBanner: false,
       theme: AppDesignSystem.lightTheme,
       darkTheme: AppDesignSystem.darkTheme,
-      themeMode: themeMode, // Use themeMode from provider
+      themeMode: userPrefs.darkMode
+          ? ThemeMode.dark
+          : ThemeMode.light, // Use themeMode from provider
       home: authState.when(
         data: (session) {
           return session != null ? const ModernHome() : const LoginScreen();
@@ -220,6 +244,8 @@ class SocialBalansAppMain extends ConsumerWidget {
         '/mood-entry': (context) => const MoodEntryScreen(), // Added route
         '/challenges': (context) => const ChallengesScreen(), // Added route
         '/profile': (context) => const ProfileScreen(), // Added route
+        '/notification-settings': (context) =>
+            const NotificationSettingsScreen(),
       },
     );
   }

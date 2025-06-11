@@ -4,50 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart'; // Added for url_launcher
 // import 'package:shared_preferences/shared_preferences.dart'; // No longer directly needed here
 import '../services/notification_service.dart';
-import '../providers/user_objective_provider.dart'; // Provides userPreferencesProvider
+import '../providers/user_preferences_provider.dart';
 import '../core/design_system.dart'; // For AppDesignSystem if used in dialogs, etc.
 import 'profile_screen.dart'; // Import ProfileScreen
 import '../main.dart'; // Import main to access packageInfoProvider
 
-class SettingsScreen extends ConsumerStatefulWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  // Local state for UI, initialized from provider
-  // Let's remove local state for values that are now directly in the provider.
-  // We will read them directly from the provider in the build method.
-  // This simplifies state management significantly.
-  // late bool _notificationsEnabled;
-  // late Duration _dailyScreenTimeGoal;
-  // late List<String> _focusAreas;
-  // late bool _darkMode;
-
-  // We only need a loading flag.
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    // Pre-loading can be tricky with providers.
-    // The userPreferencesProvider now handles its own loading state,
-    // so we can rely on ref.watch in the build method. Let's simplify.
-    // Let's remove _loadSettingsFromProvider and manage loading in the build method.
-    // _loadSettingsFromProvider();
-  }
-
-  // _loadSettingsFromProvider is no longer needed
-
-  @override
-  Widget build(BuildContext context) {
-    // Watch the provider to rebuild when preferences change.
-    // This is the single source of truth for the settings UI.
+  Widget build(BuildContext context, WidgetRef ref) {
     final userPrefs = ref.watch(userPreferencesProvider);
-    final packageInfoAsync =
-        ref.watch(packageInfoProvider); // Watch the new provider
+    final userPrefsNotifier = ref.read(userPreferencesProvider.notifier);
+    final packageInfoAsync = ref.watch(packageInfoProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -56,6 +25,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: ListView(
         children: [
           _buildSection(
+            context,
             'Compte',
             [
               ListTile(
@@ -73,59 +43,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
           _buildSection(
+            context,
             'Notificaties',
             [
-              SwitchListTile(
-                title: const Text('Notificaties inschakelen'),
-                subtitle: const Text(
-                    'Ontvang herinneringen voor humeur, pauzes en doelen'),
-                value: userPrefs
-                    .notificationsEnabled, // Read directly from provider
-                onChanged: (value) {
-                  // No need for setState, provider update will rebuild the widget.
-                  ref.read(userPreferencesProvider.notifier).updatePreferences(
-                      userPrefs.copyWith(notificationsEnabled: value));
-                  NotificationService().updateNotificationSettings(value);
+              ListTile(
+                leading: const Icon(Icons.notifications_active_outlined),
+                title: const Text('Notificatie instellingen'),
+                subtitle: const Text('Beheer herinneringen en meldingen'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.pushNamed(context, '/notification-settings');
                 },
               ),
-              if (userPrefs.notificationsEnabled) ...[
-                // Read directly from provider
-                const ListTile(
-                  title: Text('Dagelijkse humeur herinnering'),
-                  subtitle: Text('Elke dag om 20:00'),
-                ),
-                const ListTile(
-                  title: Text('Pauze herinneringen'),
-                  subtitle: Text('Elke 2 uur tussen 9:00 en 21:00'),
-                ),
-                const ListTile(
-                  title: Text('Wekelijkse doelen'),
-                  subtitle: Text('Elke maandag om 10:00'),
-                ),
-              ],
             ],
           ),
           _buildSection(
+            context,
             'Schermtijd',
             [
               ListTile(
-                enabled: userPrefs
-                    .isScreenTimeLimitEnabled, // Enable/disable based on the switch
+                enabled: userPrefs.isScreenTimeLimitEnabled,
                 title: const Text('Dagelijks doel'),
                 subtitle: Text(
                     '${userPrefs.dailyScreenTimeGoal.inHours}u ${userPrefs.dailyScreenTimeGoal.inMinutes % 60}m'),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit),
-                  // onPressed can be null to disable the button
                   onPressed: userPrefs.isScreenTimeLimitEnabled
                       ? () async {
                           final newGoal = await _showScreenTimeGoalDialog(
-                              userPrefs.dailyScreenTimeGoal);
+                              context, userPrefs.dailyScreenTimeGoal);
                           if (newGoal != null) {
-                            ref
-                                .read(userPreferencesProvider.notifier)
-                                .updatePreferences(userPrefs.copyWith(
-                                    dailyScreenTimeGoal: newGoal));
+                            userPrefsNotifier.setDailyScreenTimeGoal(newGoal);
                           }
                         }
                       : null,
@@ -135,17 +83,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 title: const Text('Schermtijd limiet'),
                 subtitle: const Text(
                     'Krijg een melding wanneer je je dagelijkse doel bereikt'),
-                value: userPrefs.isScreenTimeLimitEnabled, // Read from provider
+                value: userPrefs.isScreenTimeLimitEnabled,
                 onChanged: (value) {
-                  ref.read(userPreferencesProvider.notifier).updatePreferences(
-                      userPrefs.copyWith(isScreenTimeLimitEnabled: value));
-                  // The actual notification logic for this will be triggered elsewhere,
-                  // based on this preference value.
+                  userPrefsNotifier.setIsScreenTimeLimitEnabled(value);
                 },
               ),
             ],
           ),
           _buildSection(
+            context,
             'Focus gebieden',
             [
               ...userPrefs.focusAreas.map((area) => ListTile(
@@ -156,10 +102,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         final updatedAreas =
                             List<String>.from(userPrefs.focusAreas)
                               ..remove(area);
-                        ref
-                            .read(userPreferencesProvider.notifier)
-                            .updatePreferences(
-                                userPrefs.copyWith(focusAreas: updatedAreas));
+                        userPrefsNotifier.setFocusAreas(updatedAreas);
                       },
                     ),
                   )),
@@ -167,20 +110,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 leading: const Icon(Icons.add),
                 title: const Text('Nieuw focus gebied'),
                 onTap: () async {
-                  final newArea = await _showAddFocusAreaDialog();
+                  final newArea = await _showAddFocusAreaDialog(context);
                   if (newArea != null && newArea.isNotEmpty) {
                     final updatedAreas = List<String>.from(userPrefs.focusAreas)
                       ..add(newArea);
-                    ref
-                        .read(userPreferencesProvider.notifier)
-                        .updatePreferences(
-                            userPrefs.copyWith(focusAreas: updatedAreas));
+                    userPrefsNotifier.setFocusAreas(updatedAreas);
                   }
                 },
               ),
             ],
           ),
           _buildSection(
+            context,
             'Weergave',
             [
               SwitchListTile(
@@ -188,14 +129,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 subtitle: const Text('Schakel tussen licht en donker thema'),
                 value: userPrefs.darkMode,
                 onChanged: (value) {
-                  ref
-                      .read(userPreferencesProvider.notifier)
-                      .updatePreferences(userPrefs.copyWith(darkMode: value));
+                  userPrefsNotifier.setDarkMode(value);
                 },
               ),
             ],
           ),
           _buildSection(
+            context,
             'Over',
             [
               packageInfoAsync.when(
@@ -215,33 +155,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ListTile(
                 title: const Text('Privacybeleid'),
                 trailing: const Icon(Icons.open_in_new),
-                onTap: () async {
-                  final Uri url = Uri.parse(
-                      'https://your-privacy-policy-url.com'); // Replace with your actual URL
-                  if (!await launchUrl(url)) {
-                    // Could show a snackbar if unable to launch
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              'Kon de URL niet openen: ${url.toString()}')),
-                    );
-                  }
-                },
+                onTap: () =>
+                    _launchURL('https://your-privacy-policy-url.com', context),
               ),
               ListTile(
                 title: const Text('Voorwaarden'),
                 trailing: const Icon(Icons.open_in_new),
-                onTap: () async {
-                  final Uri url = Uri.parse(
-                      'https://your-terms-of-service-url.com'); // Replace with your actual URL
-                  if (!await launchUrl(url)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              'Kon de URL niet openen: ${url.toString()}')),
-                    );
-                  }
-                },
+                onTap: () => _launchURL(
+                    'https://your-terms-of-service-url.com', context),
               ),
             ],
           ),
@@ -250,7 +171,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  void _launchURL(String url, BuildContext context) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Kon de URL niet openen: $url')),
+      );
+    }
+  }
+
+  Widget _buildSection(
+      BuildContext context, String title, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -270,24 +201,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<Duration?> _showScreenTimeGoalDialog(Duration initialGoal) async {
-    // Pass initialGoal
+  Future<Duration?> _showScreenTimeGoalDialog(
+      BuildContext context, Duration initialGoal) async {
     Duration tempGoal = initialGoal;
-    // Use a StatefulWidget for the dialog content if live updates inside the dialog are needed
-    // For simplicity, we'll update tempGoal and return it.
     return await showDialog<Duration>(
       context: context,
       builder: (context) {
-        // To make dropdowns reflect changes, dialog needs its own state or a more complex setup.
-        // Or, update _dailyScreenTimeGoal directly in onChanged and rebuild the dialog (less ideal).
-        // Let's try to manage tempGoal for the dialog.
         int currentHours = tempGoal.inHours;
         int currentMinutes = tempGoal.inMinutes % 60;
 
         return AlertDialog(
           title: const Text('Dagelijks schermtijd doel'),
           content: StatefulBuilder(
-            // Use StatefulBuilder to update dialog content
             builder: (BuildContext context, StateSetter setDialogState) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
@@ -357,8 +282,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<String?> _showAddFocusAreaDialog() async {
-    // ... (remains largely the same, ensure controller text is returned)
+  Future<String?> _showAddFocusAreaDialog(BuildContext context) async {
     final controller = TextEditingController();
     return await showDialog<String>(
       context: context,
