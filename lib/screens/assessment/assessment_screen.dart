@@ -22,148 +22,111 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
   final List<Map<String, dynamic>> _questions = [
     {
       'id': 'Q1',
-      'text':
-          'Combien d\'heures par jour utilisez-vous votre smartphone en moyenne?',
+      'text': 'Hoeveel uur per dag gebruik je gemiddeld je smartphone?',
       'options': [
-        'Moins d\'1 heure',
-        '1-2 heures',
-        '3-4 heures',
-        '5-6 heures',
-        'Plus de 6 heures'
+        'Minder dan 1 uur',
+        '1-2 uur',
+        '3-4 uur',
+        '5-6 uur',
+        'Meer dan 6 uur'
       ],
       'category': 'screenTime',
     },
     {
       'id': 'Q2',
       'text':
-          'À quelle fréquence vérifiez-vous consciemment le temps que vous passez sur vos appareils?',
-      'options': [
-        'Jamais',
-        'Rarement',
-        'Parfois',
-        'Souvent',
-        'Très régulièrement'
-      ],
+          'Hoe vaak controleer je bewust de tijd die je op je apparaten doorbrengt?',
+      'options': ['Nooit', 'Zelden', 'Soms', 'Vaak', 'Zeer regelmatig'],
       'category': 'mindfulness',
     },
     {
       'id': 'Q3',
-      'text':
-          'Vous sentez-vous anxieux(se) lorsque vous ne pouvez pas vérifier votre téléphone?',
+      'text': 'Voel je je angstig als je je telefoon niet kunt controleren?',
       'options': [
-        'Extrêmement anxieux(se)',
-        'Très anxieux(se)',
-        'Modérément anxieux(se)',
-        'Légèrement anxieux(se)',
-        'Pas du tout anxieux(se)'
+        'Extreem angstig',
+        'Zeer angstig',
+        'Matig angstig',
+        'Licht angstig',
+        'Helemaal niet angstig'
       ],
       'category': 'wellBeing',
     },
     {
       'id': 'Q4',
-      'text':
-          'À quelle fréquence les notifications interrompent-elles votre travail ou vos études?',
+      'text': 'Hoe vaak onderbreken meldingen je werk of studie?',
       'options': [
-        'Constamment',
-        'Très souvent',
-        'Régulièrement',
-        'Occasionnellement',
-        'Rarement ou jamais'
+        'Voortdurend',
+        'Heel vaak',
+        'Regelmatig',
+        'Af en toe',
+        'Zelden of nooit'
       ],
       'category': 'productivity',
     },
     {
       'id': 'Q5',
-      'text': 'Utilisez-vous votre téléphone au lit avant de vous endormir?',
-      'options': [
-        'Toujours',
-        'Presque toujours',
-        'Parfois',
-        'Rarement',
-        'Jamais'
-      ],
+      'text': 'Gebruik je je telefoon in bed voordat je gaat slapen?',
+      'options': ['Altijd', 'Bijna altijd', 'Soms', 'Zelden', 'Nooit'],
       'category': 'screenTime',
     },
     {
       'id': 'Q6',
-      'text':
-          'À quelle fréquence prenez-vous des pauses délibérées de la technologie?',
-      'options': [
-        'Jamais',
-        'Rarement',
-        'Parfois',
-        'Souvent',
-        'Quotidiennement'
-      ],
+      'text': 'Hoe vaak neem je bewust een pauze van technologie?',
+      'options': ['Nooit', 'Zelden', 'Soms', 'Vaak', 'Dagelijks'],
       'category': 'mindfulness',
     },
     {
       'id': 'Q7',
-      'text':
-          'Comment évalueriez-vous l\'impact des réseaux sociaux sur votre humeur?',
+      'text': 'Hoe zou je de impact van sociale media op je humeur beoordelen?',
       'options': [
-        'Très négatif',
-        'Plutôt négatif',
-        'Neutre',
-        'Plutôt positif',
-        'Très positif'
+        'Zeer negatief',
+        'Vrij negatief',
+        'Neutraal',
+        'Vrij positief',
+        'Zeer positief'
       ],
       'category': 'wellBeing',
     },
     {
       'id': 'Q8',
-      'text':
-          'Combien de fois par jour vous sentez-vous distrait(e) par votre téléphone?',
+      'text': 'Hoe vaak per dag voel je je afgeleid door je telefoon?',
       'options': [
-        'Plus de 20 fois',
-        '15-20 fois',
-        '10-14 fois',
-        '5-9 fois',
-        'Moins de 5 fois'
+        'Meer dan 20 keer',
+        '15-20 keer',
+        '10-14 keer',
+        '5-9 keer',
+        'Minder dan 5 keer'
       ],
       'category': 'productivity',
     },
     {
       'id': 'Q9',
-      'text': 'Combien d\'applications utilisez-vous quotidiennement?',
-      'options': ['Plus de 15', '11-15', '7-10', '4-6', '1-3'],
+      'text': 'Hoeveel applicaties gebruik je dagelijks?',
+      'options': ['Meer dan 15', '11-15', '7-10', '4-6', '1-3'],
       'category': 'screenTime',
     },
     {
       'id': 'Q10',
-      'text':
-          'À quelle fréquence pratiquez-vous des activités sans technologie?',
-      'options': [
-        'Jamais',
-        'Rarement',
-        'Parfois',
-        'Souvent',
-        'Quotidiennement'
-      ],
+      'text': 'Hoe vaak doe je activiteiten zonder technologie?',
+      'options': ['Nooit', 'Zelden', 'Soms', 'Vaak', 'Dagelijks'],
       'category': 'mindfulness',
     },
     {
       'id': 'Q11',
-      'text': 'Comment évaluez-vous la qualité de votre sommeil?',
-      'options': [
-        'Très mauvaise',
-        'Mauvaise',
-        'Moyenne',
-        'Bonne',
-        'Excellente'
-      ],
+      'text': 'Hoe beoordeel je de kwaliteit van je slaap?',
+      'options': ['Zeer slecht', 'Slecht', 'Gemiddeld', 'Goed', 'Uitstekend'],
       'category': 'wellBeing',
     },
     {
       'id': 'Q12',
       'text':
-          'Pouvez-vous vous concentrer sur une tâche sans vérifier votre téléphone?',
+          'Kun je je concentreren op een taak zonder je telefoon te controleren?',
       'options': [
-        'Pas du tout',
-        'Difficilement',
-        'Modérément',
-        'Assez bien',
-        'Très facilement'
+        'Helemaal niet',
+        'Moeilijk',
+        'Matig',
+        'Redelijk goed',
+        'Zeer gemakkelijk'
       ],
       'category': 'productivity',
     },
@@ -211,7 +174,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
     if (_responses.length < _questions.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Veuillez répondre à toutes les questions.'),
+          content: Text('Beantwoord alstublieft alle vragen.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -242,7 +205,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Une erreur est survenue: $e'),
+          content: Text('Er is een fout opgetreden: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -259,7 +222,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Évaluation Personnalisée'),
+        title: const Text('Gepersonaliseerde Beoordeling'),
         elevation: 0,
       ),
       body: Column(
@@ -300,7 +263,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Question ${_currentPage + 1} sur ${_questions.length}',
+                'Vraag ${_currentPage + 1} van de ${_questions.length}',
                 style: AppDesignSystem.body2,
               ),
               Text(
@@ -463,7 +426,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
                 children: [
                   Icon(Icons.arrow_back, size: 16),
                   SizedBox(width: AppDesignSystem.space8),
-                  Text('Précédent'),
+                  Text('Vorige'),
                 ],
               ),
             )
@@ -496,8 +459,8 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
                     children: [
                       Text(
                         _currentPage == _questions.length - 1
-                            ? 'Terminer'
-                            : 'Suivant',
+                            ? 'Voltooien'
+                            : 'Volgende',
                       ),
                       const SizedBox(width: AppDesignSystem.space8),
                       const Icon(Icons.arrow_forward, size: 16),

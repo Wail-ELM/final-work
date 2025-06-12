@@ -14,7 +14,7 @@ class AssessmentResultScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Votre Profil Numérique'),
+        title: const Text('Uw Digitale Profiel'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -40,14 +40,14 @@ class AssessmentResultScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Votre Analyse',
+            'Uw Analyse',
             style: AppDesignSystem.heading1.copyWith(
               color: AppDesignSystem.primaryGreen,
             ),
           ),
           const SizedBox(height: AppDesignSystem.space8),
           Text(
-            'Sur base de vos réponses, nous avons créé un profil numérique personnalisé pour vous aider à améliorer votre équilibre digital.',
+            'Op basis van uw antwoorden hebben we een gepersonaliseerd digitaal profiel voor u opgesteld om u te helpen uw digitale balans te verbeteren.',
             style: AppDesignSystem.body1.copyWith(
               color: Theme.of(context)
                   .textTheme
@@ -98,7 +98,7 @@ class AssessmentResultScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Votre profil',
+                      'Uw profiel',
                       style: AppDesignSystem.body2.copyWith(
                         color: Colors.white.withOpacity(0.9),
                       ),
@@ -132,25 +132,25 @@ class AssessmentResultScreen extends ConsumerWidget {
     final scores = assessment.scores;
     final List<ScoreCategory> categories = [
       ScoreCategory(
-        name: 'Temps d\'écran',
+        name: 'Schermtijd',
         score: scores['screenTime'] ?? 0,
         color: AppDesignSystem.secondaryBlue,
         icon: Icons.phone_android,
       ),
       ScoreCategory(
-        name: 'Pleine conscience',
+        name: 'Mindfulness',
         score: scores['mindfulness'] ?? 0,
         color: AppDesignSystem.success,
         icon: Icons.spa,
       ),
       ScoreCategory(
-        name: 'Bien-être',
+        name: 'Welzijn',
         score: scores['wellBeing'] ?? 0,
         color: Colors.orange,
         icon: Icons.sentiment_satisfied_alt,
       ),
       ScoreCategory(
-        name: 'Productivité',
+        name: 'Productiviteit',
         score: scores['productivity'] ?? 0,
         color: Colors.purple,
         icon: Icons.trending_up,
@@ -175,7 +175,7 @@ class AssessmentResultScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Vos scores par catégorie',
+            'Uw scores per categorie',
             style: AppDesignSystem.heading3,
           ),
           const SizedBox(height: AppDesignSystem.space24),
@@ -232,19 +232,19 @@ class AssessmentResultScreen extends ConsumerWidget {
     Color evaluationColor;
 
     if (score >= 80) {
-      evaluation = 'Excellent';
+      evaluation = 'Uitstekend';
       evaluationColor = AppDesignSystem.success;
     } else if (score >= 60) {
-      evaluation = 'Bon';
+      evaluation = 'Goed';
       evaluationColor = Colors.green[300]!;
     } else if (score >= 40) {
-      evaluation = 'Moyen';
+      evaluation = 'Gemiddeld';
       evaluationColor = Colors.orange;
     } else if (score >= 20) {
-      evaluation = 'À améliorer';
+      evaluation = 'Te verbeteren';
       evaluationColor = Colors.deepOrange;
     } else {
-      evaluation = 'Critique';
+      evaluation = 'Kritiek';
       evaluationColor = AppDesignSystem.error;
     }
 
@@ -321,12 +321,12 @@ class AssessmentResultScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Recommandations Personnalisées',
+            'Gepersonaliseerde Aanbevelingen',
             style: AppDesignSystem.heading3,
           ),
           const SizedBox(height: AppDesignSystem.space16),
           Text(
-            'Sur base de votre profil, voici les défis qui vous aideront le plus à améliorer votre équilibre numérique:',
+            'Op basis van uw profiel zijn dit de uitdagingen die u het meest zullen helpen uw digitale balans te verbeteren:',
             style: AppDesignSystem.body2,
           ),
           const SizedBox(height: AppDesignSystem.space16),
@@ -338,38 +338,38 @@ class AssessmentResultScreen extends ConsumerWidget {
   }
 
   Widget _buildChallengeItem(BuildContext context, String challengeId) {
-    // Ici, on pourrait idéalement chercher les détails du défi dans une base de données
+    // Hier, on pourrait idéalement chercher les détails du défi dans une base de données
     // Pour l'instant, on utilise des valeurs par défaut basées sur l'ID
     String title;
     String description;
     IconData icon;
 
     if (challengeId.contains('detox')) {
-      title = 'Digital Detox';
-      description = 'Prenez une pause de 30 minutes sans écrans chaque jour';
+      title = 'Digitale Detox';
+      description = 'Neem elke dag een pauze van 30 minuten zonder schermen';
       icon = Icons.phonelink_off_outlined;
     } else if (challengeId.contains('notification')) {
-      title = 'Nettoyage de Notifications';
-      description = 'Désactivez les notifications non essentielles';
+      title = 'Notificatie Opschoning';
+      description = 'Schakel niet-essentiële meldingen uit';
       icon = Icons.notifications_off_outlined;
     } else if (challengeId.contains('morning')) {
-      title = 'Matinées Sans Téléphone';
+      title = 'Ochtenden Zonder Telefoon';
       description =
-          'Ne consultez pas votre téléphone durant la première heure après le réveil';
+          'Controleer uw telefoon niet gedurende het eerste uur na het wakker worden';
       icon = Icons.wb_sunny_outlined;
     } else if (challengeId.contains('focus')) {
-      title = 'Sessions de Focus';
+      title = 'Focus Sessies';
       description =
-          'Travaillez en mode focus (sans distractions) pendant 25 minutes';
+          'Werk in focusmodus (zonder afleiding) gedurende 25 minuten';
       icon = Icons.timer_outlined;
     } else if (challengeId.contains('mindful')) {
-      title = 'Utilisation Consciente';
+      title = 'Bewust Gebruik';
       description =
-          'Avant chaque utilisation, prenez 10 secondes pour respirer et clarifier votre intention';
+          'Neem voor elk gebruik 10 seconden de tijd om te ademen en uw intentie te verduidelijken';
       icon = Icons.spa_outlined;
     } else {
-      title = 'Défi Personnalisé';
-      description = 'Un défi adapté à votre profil numérique';
+      title = 'Gepersonaliseerde Uitdaging';
+      description = 'Een uitdaging aangepast aan uw digitale profiel';
       icon = Icons.emoji_events_outlined;
     }
 
@@ -428,7 +428,7 @@ class AssessmentResultScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Votre Plan d\'Action',
+            'Uw Actieplan',
             style: AppDesignSystem.heading3,
           ),
           const SizedBox(height: AppDesignSystem.space16),
@@ -449,7 +449,7 @@ class AssessmentResultScreen extends ConsumerWidget {
               ),
             ),
             icon: const Icon(Icons.flag_outlined),
-            label: const Text('Commencer les Défis Recommandés'),
+            label: const Text('Start de Aanbevolen Uitdagingen'),
           ),
           const SizedBox(height: AppDesignSystem.space16),
           OutlinedButton.icon(
@@ -467,7 +467,7 @@ class AssessmentResultScreen extends ConsumerWidget {
               ),
             ),
             icon: const Icon(Icons.dashboard_outlined),
-            label: const Text('Aller au Tableau de Bord'),
+            label: const Text('Ga naar het Dashboard'),
           ),
         ],
       ),
