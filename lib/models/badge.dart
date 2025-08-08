@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'badge.g.dart';
 
-@HiveType(typeId: 6) // Ensure the typeId is unique
+@HiveType(typeId: 7) // Ensure the typeId is unique and does not collide with others
 class Badge {
   @HiveField(0)
   final String id;

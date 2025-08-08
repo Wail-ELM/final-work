@@ -102,7 +102,13 @@ void main() async {
   await Hive.openBox<Challenge>('challenges');
   await Hive.openBox<MoodEntry>('moods');
   await Hive.openBox<ScreenTimeEntry>('screen_time');
-  await Hive.openBox<Badge>('badges'); // Open the new badges box
+  try {
+    await Hive.openBox<Badge>('badges');
+  } catch (e) {
+    // Handles older data written with a different typeId.
+    await Hive.deleteBoxFromDisk('badges');
+    await Hive.openBox<Badge>('badges');
+  }
 
   // Create a ProviderContainer to initialize services before the app runs.
   final container = ProviderContainer();
@@ -403,8 +409,8 @@ class _ModernHomeState extends ConsumerState<ModernHome> {
     );
     // If a mood was successfully entered, refresh relevant providers
     if (result == true && mounted) {
-      ref.refresh(moodStatsProvider);
-      ref.refresh(userStreakProvider);
+      ref.invalidate(moodStatsProvider);
+      ref.invalidate(userStreakProvider);
     }
   }
 

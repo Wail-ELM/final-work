@@ -8,7 +8,7 @@ part of 'badge.dart';
 
 class BadgeAdapter extends TypeAdapter<Badge> {
   @override
-  final int typeId = 6;
+  final int typeId = 7;
 
   @override
   Badge read(BinaryReader reader) {
