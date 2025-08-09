@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/mood_entry.dart';
 import '../models/screen_time_entry.dart';
-import '../models/challenge.dart';
+import 'package:social_balans/models/challenge.dart';
 import 'package:path/path.dart' as p; // Added for path manipulation
 import 'package:social_balans/providers/auth_provider.dart';
 
@@ -63,8 +63,7 @@ class UserDataService {
       // Otherwise, adjust the path as per your bucket structure and policies.
       final filePath = '$userId/$fileName';
 
-      final storageResponse =
-          await _supabase.storage.from(_avatarBucket).uploadBinary(
+      await _supabase.storage.from(_avatarBucket).uploadBinary(
                 filePath,
                 await imageFile.readAsBytes(),
                 fileOptions: FileOptions(
@@ -160,16 +159,28 @@ class UserDataService {
   }
 
   Future<void> addMoodEntry({
+    required String id,
     required String userId,
     required int moodValue,
     String? note,
   }) async {
     try {
       await _supabase.from('mood_entries').insert({
+        'id': id,
         'user_id': userId,
         'mood_value': moodValue,
         'note': note,
       });
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> deleteMoodEntry({
+    required String id,
+  }) async {
+    try {
+      await _supabase.from('mood_entries').delete().eq('id', id);
     } catch (e) {
       throw _handleError(e);
     }
@@ -232,21 +243,29 @@ class UserDataService {
   }
 
   Future<void> addChallenge({
+    required String id,
     required String userId,
     required String title,
     required String description,
     required String category,
     required DateTime startDate,
     DateTime? endDate,
+    bool isDone = false,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) async {
     try {
       await _supabase.from('challenges').insert({
+        'id': id,
         'user_id': userId,
         'title': title,
         'description': description,
         'category': category,
         'start_date': startDate.toIso8601String().split('T')[0],
         'end_date': endDate?.toIso8601String().split('T')[0],
+        'is_done': isDone,
+        if (createdAt != null) 'created_at': createdAt.toIso8601String(),
+        if (updatedAt != null) 'updated_at': updatedAt.toIso8601String(),
       });
     } catch (e) {
       throw _handleError(e);
@@ -275,6 +294,16 @@ class UserDataService {
       if (isDone != null) updates['is_done'] = isDone;
 
       await _supabase.from('challenges').update(updates).eq('id', challengeId);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> deleteChallenge({
+    required String id,
+  }) async {
+    try {
+      await _supabase.from('challenges').delete().eq('id', id);
     } catch (e) {
       throw _handleError(e);
     }
@@ -348,7 +377,7 @@ final userProfileProvider = FutureProvider.family<Map<String, dynamic>, String>(
   },
 );
 
-final userPreferencesProvider =
+final userRemotePreferencesProvider =
     FutureProvider.family<Map<String, dynamic>, String>(
   (ref, userId) async {
     return ref.read(userDataServiceProvider).getUserPreferences(userId);

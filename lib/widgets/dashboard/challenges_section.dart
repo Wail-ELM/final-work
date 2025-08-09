@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:social_balans/models/challenge.dart';
 import '../../core/design_system.dart';
-import '../../models/challenge.dart';
 import '../../widgets/challenge_card.dart';
 
 class ChallengesSection extends ConsumerWidget {
