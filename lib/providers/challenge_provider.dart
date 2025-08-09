@@ -7,6 +7,10 @@ import '../services/auth_service.dart';
 import '../services/user_data_service.dart';
 
 final challengeBoxProvider = Provider<Box<Challenge>>((ref) {
+  // Try test box first if exists
+  if (Hive.isBoxOpen('challenges_test')) {
+    return Hive.box<Challenge>('challenges_test');
+  }
   return Hive.box<Challenge>('challenges');
 });
 
@@ -16,24 +20,32 @@ final allChallengesProvider =
   final box = ref.watch(challengeBoxProvider);
   final authService = ref.watch(authServiceProvider);
   final userDataService = ref.watch(userDataServiceProvider);
-  return ChallengesNotifier(ref, box, authService, userDataService);
+  final enableInitialSync = ref.watch(enableChallengesInitialSyncProvider);
+  return ChallengesNotifier(ref, box, authService, userDataService,
+      enableInitialSync: enableInitialSync);
 });
 
 final challengeErrorProvider = StateProvider<String?>((ref) => null);
+final enableChallengesInitialSyncProvider = Provider<bool>((_) => true);
 
 class ChallengesNotifier extends StateNotifier<List<Challenge>> {
-  ChallengesNotifier(this._ref, this._box, this._authService, this._userDataService)
-      : super([]) {
+  ChallengesNotifier(
+      this._ref, this._box, this._authService, this._userDataService,
+      {bool enableInitialSync = true})
+      : _enableInitialSync = enableInitialSync,
+        super([]) {
     _loadChallenges();
     _box.watch().listen((_) => _loadChallenges());
-    // Also try to sync from Supabase on start for real users
-    _loadFromSupabase();
+    if (_enableInitialSync) {
+      _loadFromSupabase();
+    }
   }
 
   final Ref _ref;
   final Box<Challenge> _box;
   final AuthService _authService;
   final UserDataService _userDataService;
+  final bool _enableInitialSync;
 
   void _loadChallenges() {
     final currentUser = _authService.currentUser;
@@ -93,11 +105,11 @@ class ChallengesNotifier extends StateNotifier<List<Challenge>> {
     if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
       return;
     }
-    // Optimistic local update
     await _box.put(challenge.id, challenge);
-    // _loadChallenges() is called by the watcher, no need to call it manually.
-
-    // Remote persist
+    // Debug print for tests
+    // ignore: avoid_print
+    print(
+        'Challenge added locally: id=${challenge.id} keys=${_box.keys.toList()}');
     try {
       await _userDataService.addChallenge(
         id: challenge.id,

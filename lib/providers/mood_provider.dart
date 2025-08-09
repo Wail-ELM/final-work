@@ -50,24 +50,24 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
   }
 
   Future<void> add(MoodEntry entry) async {
+    final user = _authService.currentUser;
+    if (user == null || DemoDataService.isDemoMode(user.id)) {
+      return; // Ignorer si pas d'utilisateur authentifié ou mode démo
+    }
     // Sauvegarder localement d'abord
     await _box.put(entry.id, entry);
     state = [...state, entry];
 
-    // Puis synchroniser avec Supabase
-    final user = _authService.currentUser;
-    if (user != null) {
-      try {
-        await _userDataService.addMoodEntry(
-          id: entry.id,
-          userId: user.id,
-          moodValue: entry.moodValue,
-          note: entry.note,
-        );
-      } catch (e) {
-        print('Erreur lors de la synchronisation avec Supabase: $e');
-        // TODO: Ajouter à une file d'attente pour retry plus tard
-      }
+    try {
+      await _userDataService.addMoodEntry(
+        id: entry.id,
+        userId: user.id,
+        moodValue: entry.moodValue,
+        note: entry.note,
+      );
+    } catch (e) {
+      print('Erreur lors de la synchronisation avec Supabase: $e');
+      // TODO: Ajouter à une file d'attente pour retry plus tard
     }
   }
 
