@@ -569,7 +569,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.flag_outlined),
                 const SizedBox(width: AppDesignSystem.space8),
-                const Text('Voir les défis associés'),
+                const Text('Bekijk de bijbehorende uitdagingen'),
               ],
             ),
           ),

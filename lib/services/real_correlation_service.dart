@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:collection/collection.dart';
 import '../models/mood_entry.dart';
-import '../models/screen_time_entry.dart';
 
 /// Service d'analyse statistique pour calculer les corrélations réelles
 /// entre les données de l'utilisateur.
@@ -13,7 +12,7 @@ class RealCorrelationService {
     required Map<DateTime, Duration> screenTimeData,
   }) {
     if (moodEntries.length < 3 || screenTimeData.length < 3) {
-      return _getEmptyResult('Données insuffisantes pour l\'analyse.');
+      return _getEmptyResult('Onvoldoende data voor analyse.');
     }
 
     // 1. Préparer les données pour l'analyse
@@ -22,7 +21,7 @@ class RealCorrelationService {
 
     if (moodValues.length < 3) {
       return _getEmptyResult(
-          'Pas assez de jours avec des données correspondantes.');
+          'Niet genoeg dagen met overeenkomende gegevens.');
     }
 
     // 2. Calculer le coefficient de corrélation de Pearson
@@ -133,17 +132,17 @@ class RealCorrelationService {
     List<String> recommendations = [];
     if (correlation < -0.3) {
       recommendations.add(
-          'Un temps d\'écran élevé semble correspondre à une humeur plus basse.');
+          'Een hoge schermtijd lijkt samen te hangen met een lagere stemming.');
       recommendations.add(
-          'Essayez de définir des limites pour les applications les plus utilisées.');
+          'Stel limieten in voor de meest gebruikte apps.');
     } else if (correlation > 0.3) {
       recommendations.add(
-          'Votre utilisation des écrans ne semble pas nuire à votre humeur.');
+          'Je schermgebruik lijkt je stemming niet te schaden.');
       recommendations.add(
-          'Continuez à utiliser les applications qui vous apportent de la positivité.');
+          'Blijf apps gebruiken die je positiviteit verhogen.');
     } else {
       recommendations.add(
-          'Votre humeur et votre temps d\'écran ne semblent pas fortement liés.');
+          'Je stemming en schermtijd lijken niet sterk gekoppeld.');
     }
 
     // Estimer le temps d'écran optimal (simplifié)
@@ -167,7 +166,7 @@ class RealCorrelationService {
       'optimalScreenTime': 0,
       'recommendations': [
         reason,
-        'Continuez à enregistrer votre humeur et votre temps d\'écran pour une analyse plus précise.'
+        'Blijf je humeur en schermtijd registreren voor een nauwkeurigere analyse.'
       ],
       'isEmpty': true,
     };

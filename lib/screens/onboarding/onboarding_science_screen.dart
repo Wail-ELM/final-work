@@ -21,39 +21,39 @@ class OnboardingScienceScreen extends StatelessWidget {
                 const SizedBox(height: AppDesignSystem.space32),
                 _buildScienceCard(
                   context,
-                  title: 'Impact des écrans sur le bien-être mental',
+                  title: 'Impact van schermgebruik op mentaal welzijn',
                   icon: Icons.psychology,
                   content:
-                      'Des recherches publiées dans le Journal of Behavioral Addictions montrent qu\'une utilisation excessive des smartphones est associée à une augmentation de 30% de l\'anxiété et une diminution de 25% de la qualité du sommeil.',
+                      'Onderzoek gepubliceerd in het Journal of Behavioral Addictions toont dat overmatig smartphonegebruik samenhangt met 30% meer angst en 25% lagere slaapkwaliteit.',
                   source: 'Journal of Behavioral Addictions, 2022',
                 ),
                 const SizedBox(height: AppDesignSystem.space24),
                 _buildScienceCard(
                   context,
-                  title: 'Le phénomène de "doom scrolling"',
+                  title: 'Het fenomeen "doom scrolling"',
                   icon: Icons.screen_rotation,
                   content:
-                      'L\'Université de Stanford a démontré que le "doom scrolling" (défilement sans fin) déclenche les mêmes circuits de récompense dans le cerveau que ceux activés par certaines substances addictives.',
+                      'Onderzoek van Stanford toont aan dat "doom scrolling" (eindeloos scrollen) dezelfde beloningscircuits in het brein activeert als bepaalde verslavende stoffen.',
                   source: 'Stanford University, 2023',
                 ),
                 const SizedBox(height: AppDesignSystem.space24),
                 _buildScienceCard(
                   context,
-                  title: 'Temps d\'écran et productivité',
+                  title: 'Schermtijd en productiviteit',
                   icon: Icons.access_time,
                   content:
-                      'Les chercheurs de Harvard Business School ont constaté qu\'une réduction de 20% du temps d\'écran non essentiel peut augmenter la productivité quotidienne de jusqu\'à 37%.',
+                      'Harvard Business School vond dat 20% minder niet-essentiële schermtijd de dagelijkse productiviteit tot 37% kan verhogen.',
                   source: 'Harvard Business School, 2021',
                 ),
                 const SizedBox(height: AppDesignSystem.space24),
                 _buildScienceCard(
                   context,
-                  title: 'Social Balans: notre approche',
+                  title: 'Social Balans: onze aanpak',
                   icon: Icons.balance,
                   content:
-                      'Social Balans utilise des méthodes validées scientifiquement pour vous aider à établir une relation saine avec la technologie. Notre système de suivi et d\'analyse est basé sur les principes de la thérapie cognitivo-comportementale et l\'économie comportementale.',
+                      'Social Balans gebruikt wetenschappelijk onderbouwde methodes om je te helpen een gezonde relatie met technologie op te bouwen. Ons volg- en analysesysteem steunt op principes uit cognitieve gedragstherapie en gedrags­economie.',
                   source:
-                      'En collaboration avec des chercheurs en psychologie numérique',
+                      'In samenwerking met onderzoekers in digitale psychologie',
                 ),
                 const SizedBox(height: AppDesignSystem.space40),
                 _buildActionButton(context),
@@ -70,14 +70,14 @@ class OnboardingScienceScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Basé sur la Science',
+          'Wetenschappelijk Onderbouwd',
           style: AppDesignSystem.heading1.copyWith(
             color: AppDesignSystem.primaryGreen,
           ),
         ),
         const SizedBox(height: AppDesignSystem.space8),
         Text(
-          'Social Balans utilise des approches validées scientifiquement pour améliorer votre bien-être numérique',
+          'Social Balans gebruikt wetenschappelijk gevalideerde aanpakken om jouw digitale welzijn te verbeteren',
           style: AppDesignSystem.body1.copyWith(
             color:
                 Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.7),
@@ -173,7 +173,7 @@ class OnboardingScienceScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Commencer mon parcours',
+              'Start mijn traject',
               style: AppDesignSystem.body1.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,

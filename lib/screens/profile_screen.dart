@@ -3,11 +3,10 @@ import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart'; // For ImagePicker
 import '../core/design_system.dart'; // Import design system for new colors
-import '../models/badge.dart';
 import '../providers/auth_provider.dart';
 import '../providers/badge_provider.dart';
 import '../providers/user_preferences_provider.dart';
-import '../services/user_data_service.dart' hide userPreferencesProvider;
+import '../services/user_data_service.dart';
 import '../widgets/badge_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; // Added for User type
 
@@ -313,7 +312,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Erreur: $e')));
+            .showSnackBar(SnackBar(content: Text('Fout: $e')));
       }
     }
   }

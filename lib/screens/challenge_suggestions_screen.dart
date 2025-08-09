@@ -389,11 +389,11 @@ class _ChallengeSuggestionsScreenState
                     Text(suggestion.description,
                         style: Theme.of(context).textTheme.bodyLarge),
                     const SizedBox(height: 16),
-                    Text("Pourquoi cette suggestion?",
+                    Text("Waarom deze suggestie?",
                         style: Theme.of(context).textTheme.titleMedium),
                     Text(suggestion.reason),
                     const SizedBox(height: 16),
-                    Text("Conseils:",
+                    Text("Tips:",
                         style: Theme.of(context).textTheme.titleMedium),
                     ...suggestion.tips.map((tip) => ListTile(
                         leading: Icon(Icons.check_circle_outline),
@@ -405,7 +405,7 @@ class _ChallengeSuggestionsScreenState
                 padding: const EdgeInsets.all(24),
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.check_circle),
-                  label: const Text('Accepter le défi'),
+                  label: const Text('Uitdaging accepteren'),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
                   ),
@@ -416,7 +416,7 @@ class _ChallengeSuggestionsScreenState
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text(
-                                'Vous devez être connecté pour accepter un défi.')),
+                                'Je moet ingelogd zijn om een uitdaging te accepteren.')),
                       );
                       return;
                     }
@@ -428,9 +428,9 @@ class _ChallengeSuggestionsScreenState
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Défi ajouté !'),
+                        content: const Text('Uitdaging toegevoegd!'),
                         action: SnackBarAction(
-                          label: 'Voir',
+                          label: 'Bekijk',
                           onPressed: () {
                             // This assumes you have a way to navigate to the challenges screen
                             // Maybe by using the main navigator if you have a key, or by using a tab controller.

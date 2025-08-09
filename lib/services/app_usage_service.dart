@@ -286,9 +286,8 @@ class AppUsageService {
           final notificationService = _ref.read(notificationServiceProvider);
           await notificationService.showSimpleNotification(
             id: 99, // Unique ID for screen time notifications
-            title: 'Limite de temps d\'écran dépassée',
-            body:
-                "Vous avez dépassé votre objectif de temps d'écran de ${overage.inMinutes} minutes.",
+            title: 'Schermtijdlimiet overschreden',
+            body: 'Je hebt je schermtijd-doel met ${overage.inMinutes} minuten overschreden.',
           );
           await _setLastNotificationDate(today);
         }
