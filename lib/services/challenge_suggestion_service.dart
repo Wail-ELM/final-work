@@ -1,10 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/challenge.dart';
+import 'package:social_balans/models/challenge.dart';
 import '../models/challenge_category_adapter.dart';
 import '../providers/mood_provider.dart';
 import '../providers/user_objective_provider.dart';
-import '../services/app_usage_service.dart';
-import '../services/auth_service.dart';
+import '../providers/auth_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class ChallengeSuggestion {

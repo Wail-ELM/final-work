@@ -103,7 +103,7 @@ class _MoodScreenState extends ConsumerState<MoodScreen> {
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () =>
-                        ref.read(moodsProvider.notifier).removeAt(i),
+                        ref.read(deleteMoodEntryProvider(entry.id).future),
                   ),
                 );
               },

@@ -5,13 +5,10 @@ import 'package:app_usage/app_usage.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../main.dart';
 import '../models/screen_time_entry.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_preferences_provider.dart';
-import '../providers/user_objective_provider.dart';
 import './notification_service.dart';
-import './web_screen_time_service.dart';
 import 'package:uuid/uuid.dart';
 
 class AppUsageService {

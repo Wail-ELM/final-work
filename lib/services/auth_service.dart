@@ -1,5 +1,4 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
@@ -149,18 +148,3 @@ class AuthService {
     );
   }
 }
-
-// Provider pour le service d'authentification
-final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService();
-});
-
-// Provider pour l'état d'authentification
-final authStateProvider = StreamProvider<Session?>((ref) {
-  return ref.watch(authServiceProvider).authStateChanges;
-});
-
-// Provider pour l'utilisateur actuel
-final currentUserProvider = Provider<User?>((ref) {
-  return ref.watch(authServiceProvider).currentUser;
-});

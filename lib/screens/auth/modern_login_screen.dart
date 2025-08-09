@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design_system.dart';
-import '../../services/auth_service.dart';
+import '../../providers/auth_provider.dart';
 
 class ModernLoginScreen extends ConsumerStatefulWidget {
   const ModernLoginScreen({super.key});
