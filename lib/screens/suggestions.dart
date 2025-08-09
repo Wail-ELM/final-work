@@ -41,7 +41,6 @@ final filteredSuggestionsProvider = Provider<List<ChallengeSuggestion>>((ref) {
           ? allSuggestions
           : allSuggestions.where((s) => s.difficulty == difficulty).toList();
     case SuggestionFilter.all:
-    default:
       return allSuggestions;
   }
 });

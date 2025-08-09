@@ -1,7 +1,7 @@
 import 'dart:math';
 import '../models/mood_entry.dart';
-import '../models/challenge.dart';
-import '../models/challenge_category_adapter.dart';
+import 'package:social_balans/models/challenge.dart';
+import 'package:social_balans/models/challenge_category_adapter.dart';
 import '../models/screen_time_entry.dart';
 import 'package:uuid/uuid.dart';
 import '../models/assessment_model.dart';
@@ -210,4 +210,3 @@ class DemoDataService {
   /// ID de l'utilisateur démo
   static String get demoUserId => _demoUserId;
 }
- 

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:social_balans/models/challenge.dart';
-import '../models/challenge_category_adapter.dart';
+import 'package:social_balans/models/challenge_category_adapter.dart';
 import '../providers/mood_provider.dart';
 import '../providers/user_objective_provider.dart';
 import '../providers/auth_provider.dart';

@@ -16,7 +16,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Analyse de Corrélation'),
+        title: const Text('Correlatie-analyse'),
         elevation: 0,
       ),
       body: weeklyScreenTime.when(
@@ -47,7 +47,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
-          child: Text('Erreur: $error'),
+          child: Text('Fout: $error'),
         ),
       ),
     );
@@ -60,14 +60,14 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Impact de vos habitudes numériques',
+            'Impact van je digitale gewoonten',
             style: AppDesignSystem.heading2.copyWith(
               color: AppDesignSystem.primaryGreen,
             ),
           ),
           const SizedBox(height: AppDesignSystem.space8),
           Text(
-            'Découvrez comment votre temps d\'écran influence votre bien-être et votre humeur. Ces analyses sont basées sur vos données personnelles.',
+            'Ontdek hoe jouw schermtijd je welzijn en stemming beïnvloedt. Deze analyse is gebaseerd op je eigen gegevens.',
             style: AppDesignSystem.body1.copyWith(
               color: Theme.of(context)
                   .textTheme
@@ -125,7 +125,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Corrélation Temps d\'écran / Humeur',
+                      'Correlatie Schermtijd / Stemming',
                       style: AppDesignSystem.heading3,
                     ),
                     const SizedBox(height: AppDesignSystem.space4),
@@ -172,12 +172,12 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                       reservedSize: 30,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
-                        final style = TextStyle(
+                        final style = const TextStyle(
                           color: Colors.grey,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         );
-                        return Text('${value.toInt()}h', style: style);
+                        return Text('${value.toInt()}u', style: style);
                       },
                     ),
                   ),
@@ -248,7 +248,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: AppDesignSystem.space8),
-              const Text('Votre temps d\'écran et humeur'),
+              const Text('Jouw punten'),
               const SizedBox(width: AppDesignSystem.space16),
               Container(
                 width: 12,
@@ -261,7 +261,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
               ),
               const SizedBox(width: AppDesignSystem.space8),
               Text(
-                'Ligne de tendance',
+                'Trendlijn',
                 style: TextStyle(
                   color: correlation < -0.1
                       ? AppDesignSystem.error
@@ -281,23 +281,23 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
     Color color;
 
     if (absCorrelation >= 0.7) {
-      strength = 'Forte';
+      strength = 'Sterk';
       color = correlation < 0 ? AppDesignSystem.error : AppDesignSystem.success;
     } else if (absCorrelation >= 0.5) {
-      strength = 'Modérée';
+      strength = 'Matig';
       color = correlation < 0 ? Colors.orange : Colors.lightGreen;
     } else if (absCorrelation >= 0.3) {
-      strength = 'Faible';
+      strength = 'Zwak';
       color = correlation < 0 ? Colors.deepOrange[300]! : Colors.green[300]!;
     } else {
-      strength = 'Très faible';
+      strength = 'Zeer zwak';
       color = Colors.grey;
     }
 
     return Row(
       children: [
         Text(
-          'Corrélation ${correlation < 0 ? "négative" : "positive"} ',
+          'Correlatie ${correlation < 0 ? "negatief" : "positief"} ',
           style: AppDesignSystem.body2,
         ),
         Container(
@@ -351,36 +351,36 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Vos Insights Personnalisés',
+            'Persoonlijke inzichten',
             style: AppDesignSystem.heading3,
           ),
           const SizedBox(height: AppDesignSystem.space16),
           _buildInsightCard(
             context,
-            title: 'Impact sur votre humeur',
+            title: 'Impact op stemming',
             icon: Icons.psychology,
             content: correlation < -0.3
-                ? 'Nos analyses montrent que plus vous utilisez vos écrans, plus votre humeur tend à diminuer.'
+                ? 'Meer schermtijd lijkt samen te gaan met een lagere stemming.'
                 : correlation > 0.3
-                    ? 'Fait intéressant: votre utilisation des écrans semble associée à une meilleure humeur, ce qui est inhabituel. Cela pourrait être lié à l\'utilisation d\'applications qui vous apportent du bien-être.'
-                    : 'Votre humeur ne semble pas significativement influencée par votre temps d\'écran total. Cependant, certaines applications spécifiques pourraient avoir un impact plus important.',
+                    ? 'Hogere schermtijd lijkt geassocieerd met een betere stemming – ongebruikelijk; mogelijk door positieve apps.'
+                    : 'Totale schermtijd heeft geen duidelijke invloed; specifieke apps kunnen wel effect hebben.',
           ),
           const SizedBox(height: AppDesignSystem.space16),
           _buildInsightCard(
             context,
-            title: 'Temps d\'écran optimal',
+            title: 'Optimale schermtijd',
             icon: Icons.hourglass_bottom,
             content:
-                'Selon vos données, votre humeur semble optimale lorsque vous utilisez vos écrans environ $optimalScreenTime heures par jour. Au-delà, nous observons une tendance à la baisse.',
+                'Je stemming lijkt optimaal rond $optimalScreenTime uur schermtijd per dag.',
           ),
           const SizedBox(height: AppDesignSystem.space16),
           _buildInsightCard(
             context,
-            title: 'Applications impactantes',
+            title: 'Apps met grote impact',
             icon: Icons.apps,
             content: significantApps.isEmpty
-                ? 'Nous n\'avons pas encore identifié d\'applications ayant un impact significatif sur votre humeur. Continuez à enregistrer vos données pour des analyses plus précises.'
-                : 'Nous avons identifié ces applications comme ayant un impact important sur votre humeur:',
+                ? 'Nog geen apps met significante impact geïdentificeerd. Blijf data registreren.'
+                : 'Deze apps hebben een merkbare invloed op je stemming:',
             extraWidget: significantApps.isEmpty
                 ? null
                 : Column(
@@ -543,7 +543,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Recommandations Basées sur les Données',
+            'Aanbevelingen op basis van gegevens',
             style: AppDesignSystem.heading3,
           ),
           const SizedBox(height: AppDesignSystem.space16),
@@ -566,10 +566,10 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.flag_outlined),
-                const SizedBox(width: AppDesignSystem.space8),
-                const Text('Bekijk de bijbehorende uitdagingen'),
+              children: const [
+                Icon(Icons.flag_outlined),
+                SizedBox(width: AppDesignSystem.space8),
+                Text('Bekijk gerelateerde uitdagingen'),
               ],
             ),
           ),
@@ -588,7 +588,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
             margin: const EdgeInsets.only(top: 4),
             width: 18,
             height: 18,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppDesignSystem.primaryGreen,
               shape: BoxShape.circle,
             ),
@@ -621,7 +621,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                 size: 64, color: AppDesignSystem.neutral400),
             const SizedBox(height: AppDesignSystem.space16),
             Text(
-              'Analyse en attente',
+              'Analyse in afwachting',
               style: AppDesignSystem.heading3,
               textAlign: TextAlign.center,
             ),

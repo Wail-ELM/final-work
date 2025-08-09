@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/challenge_suggestion_service.dart';
 import '../providers/challenge_provider.dart';
 import '../providers/auth_provider.dart';
-import '../models/challenge_category_adapter.dart';
+import 'package:social_balans/models/challenge_category_adapter.dart';
 
 class ChallengeSuggestionsScreen extends ConsumerStatefulWidget {
   const ChallengeSuggestionsScreen({super.key});

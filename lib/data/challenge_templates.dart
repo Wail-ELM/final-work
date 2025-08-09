@@ -1,4 +1,4 @@
-import '../models/challenge_category_adapter.dart';
+import 'package:social_balans/models/challenge_category_adapter.dart';
 
 class ChallengeTemplate {
   final String id;

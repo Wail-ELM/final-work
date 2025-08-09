@@ -26,17 +26,14 @@ import 'services/smart_challenge_tracker.dart'; // Importer le nouveau service
 // Hive-modellen
 import 'models/challenge.dart';
 import 'models/mood_entry.dart';
-import 'models/challenge_category_adapter.dart';
+import 'package:social_balans/models/challenge_category_adapter.dart';
 import 'models/screen_time_entry.dart';
 import 'core/design_system.dart'; // Import du nouveau design system
 import 'models/badge.dart';
 
 // Import providers needed for AppUsageService start/stop
 import 'providers/auth_provider.dart'; // Provides authStateProvider
-import 'providers/user_objective_provider.dart'
-    hide
-        userPreferencesProvider,
-        UserPreferences; // Provides appUsageServiceProvider
+import 'providers/user_objective_provider.dart'; // Provides appUsageServiceProvider
 import 'providers/mood_provider.dart'; // Provides moodStatsProvider
 import 'providers/badge_provider.dart'; // Import badge provider to activate the badge system
 import 'providers/user_preferences_provider.dart'; // Import userPreferencesProvider

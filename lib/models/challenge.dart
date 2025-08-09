@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import 'challenge_category_adapter.dart';
+import 'package:social_balans/models/challenge_category_adapter.dart';
 
 part 'challenge.g.dart';
 
