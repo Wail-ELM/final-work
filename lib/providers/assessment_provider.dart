@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:social_balans/services/auth_service.dart'
+    hide authServiceProvider;
 import '../models/assessment_model.dart';
 import './auth_provider.dart';
 import '../services/user_data_service.dart';
 import '../services/demo_data_service.dart';
-import '../services/auth_service.dart';
 
 class AssessmentNotifier extends StateNotifier<List<UserAssessment>> {
   final AuthService _authService;

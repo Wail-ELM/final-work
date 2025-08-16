@@ -4,14 +4,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/mood_entry.dart';
 import '../models/screen_time_entry.dart';
-import 'package:social_balans/models/challenge.dart';
+import '../models/challenge.dart';
 import 'package:path/path.dart' as p; // Added for path manipulation
 import 'package:social_balans/providers/auth_provider.dart';
 
-final supabaseClient = Supabase.instance.client;
-
 class UserDataService {
-  final _supabase = supabaseClient;
+  SupabaseClient get _supabase => Supabase.instance.client; // lazy
   final String _avatarBucket = 'avatars'; // Define bucket name
 
   // Profil utilisateur
@@ -57,23 +55,18 @@ class UserDataService {
       final fileExtension = p.extension(imageFile.path);
       final fileName =
           'avatar_${DateTime.now().millisecondsSinceEpoch}$fileExtension';
-      // Path within the bucket: public/user_id/filename
-      // Using 'public/' prefix is a common convention if you want files to be publicly accessible
-      // without signed URLs, assuming your bucket policies allow it.
-      // Otherwise, adjust the path as per your bucket structure and policies.
       final filePath = '$userId/$fileName';
 
+      // Upload zonder ongebruikte variabele
       await _supabase.storage.from(_avatarBucket).uploadBinary(
-                filePath,
-                await imageFile.readAsBytes(),
-                fileOptions: FileOptions(
-                  contentType:
-                      'image/${fileExtension.substring(1)}', // e.g. image/jpeg, image/png
-                  upsert: true, // Overwrite if file with same path exists
-                ),
-              );
+            filePath,
+            await imageFile.readAsBytes(),
+            fileOptions: FileOptions(
+              contentType: 'image/${fileExtension.substring(1)}',
+              upsert: true,
+            ),
+          );
 
-      // Get public URL
       final publicUrlResponse =
           _supabase.storage.from(_avatarBucket).getPublicUrl(filePath);
 
@@ -159,28 +152,16 @@ class UserDataService {
   }
 
   Future<void> addMoodEntry({
-    required String id,
     required String userId,
     required int moodValue,
     String? note,
   }) async {
     try {
       await _supabase.from('mood_entries').insert({
-        'id': id,
         'user_id': userId,
         'mood_value': moodValue,
         'note': note,
       });
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<void> deleteMoodEntry({
-    required String id,
-  }) async {
-    try {
-      await _supabase.from('mood_entries').delete().eq('id', id);
     } catch (e) {
       throw _handleError(e);
     }
@@ -243,29 +224,21 @@ class UserDataService {
   }
 
   Future<void> addChallenge({
-    required String id,
     required String userId,
     required String title,
     required String description,
     required String category,
     required DateTime startDate,
     DateTime? endDate,
-    bool isDone = false,
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) async {
     try {
       await _supabase.from('challenges').insert({
-        'id': id,
         'user_id': userId,
         'title': title,
         'description': description,
         'category': category,
         'start_date': startDate.toIso8601String().split('T')[0],
         'end_date': endDate?.toIso8601String().split('T')[0],
-        'is_done': isDone,
-        if (createdAt != null) 'created_at': createdAt.toIso8601String(),
-        if (updatedAt != null) 'updated_at': updatedAt.toIso8601String(),
       });
     } catch (e) {
       throw _handleError(e);
@@ -294,16 +267,6 @@ class UserDataService {
       if (isDone != null) updates['is_done'] = isDone;
 
       await _supabase.from('challenges').update(updates).eq('id', challengeId);
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<void> deleteChallenge({
-    required String id,
-  }) async {
-    try {
-      await _supabase.from('challenges').delete().eq('id', id);
     } catch (e) {
       throw _handleError(e);
     }
@@ -377,7 +340,7 @@ final userProfileProvider = FutureProvider.family<Map<String, dynamic>, String>(
   },
 );
 
-final userRemotePreferencesProvider =
+final userPreferencesProvider =
     FutureProvider.family<Map<String, dynamic>, String>(
   (ref, userId) async {
     return ref.read(userDataServiceProvider).getUserPreferences(userId);

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/screen_time_entry.dart';
 import '../providers/auth_provider.dart';
+import '../services/demo_data_service.dart';
 import '../providers/user_preferences_provider.dart';
 import './notification_service.dart';
 import 'package:uuid/uuid.dart';
@@ -90,8 +91,11 @@ class AppUsageService {
   Future<void> _logAppUsage(String packageName, Duration duration) async {
     if (kIsWeb) return;
     final now = DateTime.now();
-    final String userId =
-        _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
+  final bool demo = _ref.read(demoModeProvider);
+  final String userId = demo
+    ? DemoDataService.demoUserId
+    : (_ref.read(authServiceProvider).currentUser?.id ??
+      'unknown_user_id');
 
     if (userId == 'unknown_user_id') {
       debugPrint('AppUsageService: Attempted to log usage for unknown user.');
@@ -135,8 +139,11 @@ class AppUsageService {
 
   Future<Map<String, Duration>> getAppUsageForDate(DateTime date) async {
     if (kIsWeb) return {};
-    final String userId =
-        _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
+  final bool demo = _ref.read(demoModeProvider);
+  final String userId = demo
+    ? DemoDataService.demoUserId
+    : (_ref.read(authServiceProvider).currentUser?.id ??
+      'unknown_user_id');
     final entries = _box.values.where((e) =>
         e.userId == userId &&
         e.date.year == date.year &&
@@ -156,10 +163,14 @@ class AppUsageService {
       return null;
     }
     final usage = await getAppUsageForDate(date);
-    if (usage.isEmpty &&
-        (_ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id') ==
-            'unknown_user_id') {
-      return null;
+    // In demo mode we always return accumulated local data (may be zero if none yet)
+    if (! _ref.read(demoModeProvider)) {
+      if (usage.isEmpty &&
+          (_ref.read(authServiceProvider).currentUser?.id ??
+                  'unknown_user_id') ==
+              'unknown_user_id') {
+        return null;
+      }
     }
     return usage.values.fold<Duration>(
       Duration.zero,
@@ -182,9 +193,12 @@ class AppUsageService {
       DateTime endDate) async {
     if (kIsWeb) return {};
 
-    final String userId =
-        _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
-    if (userId == 'unknown_user_id') return {}; // No data for unknown user
+  final bool demo = _ref.read(demoModeProvider);
+  final String userId = demo
+    ? DemoDataService.demoUserId
+    : (_ref.read(authServiceProvider).currentUser?.id ??
+      'unknown_user_id');
+  if (!demo && userId == 'unknown_user_id') return {}; // No data for unknown user
 
     final Map<DateTime, Duration> weeklyData = {};
     final normalizedEndDate =
@@ -204,9 +218,12 @@ class AppUsageService {
   Future<Map<String, Duration>> getAggregatedAppUsage(
       DateTime startDate, DateTime endDate) async {
     if (kIsWeb) return {};
-    final String userId =
-        _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
-    if (userId == 'unknown_user_id') return {};
+  final bool demo = _ref.read(demoModeProvider);
+  final String userId = demo
+    ? DemoDataService.demoUserId
+    : (_ref.read(authServiceProvider).currentUser?.id ??
+      'unknown_user_id');
+  if (!demo && userId == 'unknown_user_id') return {};
 
     final normalizedStartDate =
         DateTime(startDate.year, startDate.month, startDate.day);
@@ -286,8 +303,9 @@ class AppUsageService {
           final notificationService = _ref.read(notificationServiceProvider);
           await notificationService.showSimpleNotification(
             id: 99, // Unique ID for screen time notifications
-            title: 'Schermtijdlimiet overschreden',
-            body: 'Je hebt je schermtijd-doel met ${overage.inMinutes} minuten overschreden.',
+            title: 'Limite de temps d\'écran dépassée',
+            body:
+                "Vous avez dépassé votre objectif de temps d'écran de ${overage.inMinutes} minutes.",
           );
           await _setLastNotificationDate(today);
         }

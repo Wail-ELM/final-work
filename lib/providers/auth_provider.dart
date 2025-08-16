@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
 
+// Permet d'activer un mode démo (pas d'auth requise)
+final demoModeProvider = StateProvider<bool>((ref) => false);
+
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService();
 });

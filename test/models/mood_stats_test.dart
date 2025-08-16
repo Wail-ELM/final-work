@@ -9,7 +9,7 @@ void main() {
     final yesterday = today.subtract(const Duration(days: 1));
     final eightDaysAgo = today.subtract(const Duration(days: 8));
 
-    test('berekent statistieken correct met gevarieerde gegevens', () {
+    test('berekent statistieken correct', () {
       // Arrange
       final entries = [
         // Invoeren van vandaag (gemiddelde 4.0)
@@ -34,7 +34,7 @@ void main() {
       expect(stats.lastWeekAverage, closeTo(3.333, 0.001));
     });
 
-    test('behandelt lege lijst correct', () {
+    test('lege lijst', () {
       // Arrange
       final entries = <MoodEntry>[];
 
@@ -48,7 +48,7 @@ void main() {
       expect(stats.lastWeekAverage, 0.0);
     });
 
-    test('berekent correct wanneer er geen invoer van vandaag is', () {
+    test('geen invoer vandaag', () {
       // Arrange
       final entries = [
         MoodEntry(id: 'y1', userId: 'u1', moodValue: 2, createdAt: yesterday),

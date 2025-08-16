@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/challenge_suggestion_service.dart';
 import '../providers/challenge_provider.dart';
 import '../providers/auth_provider.dart';
-import 'package:social_balans/models/challenge_category_adapter.dart';
+import '../models/challenge_category_adapter.dart';
+import '../services/demo_data_service.dart';
 
 class ChallengeSuggestionsScreen extends ConsumerStatefulWidget {
   const ChallengeSuggestionsScreen({super.key});
@@ -410,16 +411,8 @@ class _ChallengeSuggestionsScreenState
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   onPressed: () {
-                    final userId =
-                        ref.read(authServiceProvider).currentUser?.id;
-                    if (userId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                'Je moet ingelogd zijn om een uitdaging te accepteren.')),
-                      );
-                      return;
-                    }
+          final userId =
+            ref.read(authServiceProvider).currentUser?.id ?? DemoDataService.demoUserId;
 
                     final newChallenge = suggestion.toChallenge(userId);
                     ref.read(allChallengesProvider.notifier).add(newChallenge);
@@ -453,18 +446,9 @@ class _ChallengeSuggestionsScreenState
     final authService = ref.read(authServiceProvider);
     final currentUser = authService.currentUser;
 
-    if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Je moet ingelogd zijn om een uitdaging te accepteren'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     try {
-      final challenge = suggestion.toChallenge(currentUser.id);
+  final userId = currentUser?.id ?? DemoDataService.demoUserId;
+  final challenge = suggestion.toChallenge(userId);
       await ref.read(allChallengesProvider.notifier).add(challenge);
 
       ScaffoldMessenger.of(context).showSnackBar(

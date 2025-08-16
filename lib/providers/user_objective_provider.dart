@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:social_balans/models/challenge_category_adapter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../main.dart'; // Import main.dart to get access to sharedPreferencesProvider
+import '../models/challenge_category_adapter.dart';
 import '../services/app_usage_service.dart';
 import '../providers/mood_provider.dart';
 import '../providers/auth_provider.dart';

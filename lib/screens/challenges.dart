@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:social_balans/models/challenge.dart';
 import 'package:social_balans/core/design_system.dart';
+import 'package:social_balans/models/challenge.dart';
 import 'package:social_balans/providers/challenge_provider.dart';
 import 'package:social_balans/screens/suggestions.dart';
 import 'package:social_balans/widgets/challenge_card.dart';
@@ -32,7 +32,6 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
   @override
   Widget build(BuildContext context) {
     final allUserChallenges = ref.watch(allChallengesProvider);
-    final errorMsg = ref.watch(challengeErrorProvider);
     final activeChallenges = allUserChallenges.where((c) => !c.isDone).toList();
     final completedChallenges =
         allUserChallenges.where((c) => c.isDone).toList();
@@ -52,19 +51,6 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
       ),
       body: Column(
         children: [
-          if (errorMsg != null)
-            MaterialBanner(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              content: Text(errorMsg, style: const TextStyle(color: Colors.white)),
-              backgroundColor: Theme.of(context).colorScheme.error,
-              actions: [
-                TextButton(
-                  onPressed: () =>
-                      ref.read(challengeErrorProvider.notifier).state = null,
-                  child: const Text('OK', style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            ),
           _buildTabBar(context),
           Expanded(
             child: TabBarView(
@@ -162,34 +148,6 @@ class _ChallengesList extends ConsumerWidget {
           challenge: challenge,
           onToggle: () =>
               ref.read(allChallengesProvider.notifier).toggleDone(challenge.id),
-          onDelete: () async {
-            final confirmed = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Uitdaging verwijderen'),
-                content: const Text(
-                    'Weet je zeker dat je deze uitdaging wilt verwijderen?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Annuleren'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Verwijderen'),
-                  ),
-                ],
-              ),
-            );
-            if (confirmed == true) {
-              await ref.read(allChallengesProvider.notifier).remove(challenge.id);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Uitdaging verwijderd')),
-                );
-              }
-            }
-          },
         );
       },
     );

@@ -8,7 +8,8 @@ import 'package:social_balans/models/challenge_category_adapter.dart';
 import 'package:social_balans/providers/challenge_provider.dart';
 import 'package:social_balans/screens/challenges.dart';
 import 'package:social_balans/services/auth_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show User; // alleen User type
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show User; // alleen User type
 
 class _FakeUser extends User {
   _FakeUser(String id)
@@ -50,7 +51,8 @@ void main() {
     final dir = await Directory.systemTemp.createTemp('hive_widget');
     Hive.init(dir.path);
     if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(ChallengeAdapter());
-    if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(ChallengeCategoryAdapter());
+    if (!Hive.isAdapterRegistered(2))
+      Hive.registerAdapter(ChallengeCategoryAdapter());
     box = await Hive.openBox<Challenge>('challenges'); // open één keer
   });
 

@@ -1,21 +1,44 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
-final supabaseClient = Supabase.instance.client;
-
 class AuthService {
-  final _supabase = supabaseClient;
+  // Haal client lui op zodat tests Supabase kunnen initialiseren vóór gebruik
+  SupabaseClient get _supabase => Supabase.instance.client;
   final _uuid = const Uuid();
 
   // Stream des changements d'état d'authentification
-  Stream<Session?> get authStateChanges =>
-      _supabase.auth.onAuthStateChange.map((event) => event.session);
+  // Emet une valeur initiale (session courante ou null) immédiatement
+  // pour éviter un écran de chargement infini si aucun événement n'arrive.
+  Stream<Session?> get authStateChanges async* {
+    try {
+      // Emettre d'abord la session actuelle (peut être null)
+      final initial = _supabase.auth.currentSession;
+      yield initial;
+
+      // Puis relayer les changements d'état
+      yield* _supabase.auth
+          .onAuthStateChange
+          .map((event) => event.session);
+    } catch (_) {
+      // Supabase non initialisé: émettre null puis terminer proprement
+      yield null;
+    }
+  }
 
   // Utilisateur actuel
-  User? get currentUser => _supabase.auth.currentUser;
+  User? get currentUser {
+    try {
+      return _supabase.auth.currentUser;
+    } catch (_) {
+      // Supabase niet geïnitialiseerd
+      return null;
+    }
+  }
 
   // Inscription avec email/mot de passe
   Future<AuthResponse> signUp({
@@ -148,3 +171,18 @@ class AuthService {
     );
   }
 }
+
+// Provider pour le service d'authentification
+final authServiceProvider = Provider<AuthService>((ref) {
+  return AuthService();
+});
+
+// Provider pour l'état d'authentification
+final authStateProvider = StreamProvider<Session?>((ref) {
+  return ref.watch(authServiceProvider).authStateChanges;
+});
+
+// Provider pour l'utilisateur actuel
+final currentUserProvider = Provider<User?>((ref) {
+  return ref.watch(authServiceProvider).currentUser;
+});

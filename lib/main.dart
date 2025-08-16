@@ -26,13 +26,13 @@ import 'services/smart_challenge_tracker.dart'; // Importer le nouveau service
 // Hive-modellen
 import 'models/challenge.dart';
 import 'models/mood_entry.dart';
-import 'package:social_balans/models/challenge_category_adapter.dart';
+import 'models/challenge_category_adapter.dart';
 import 'models/screen_time_entry.dart';
 import 'core/design_system.dart'; // Import du nouveau design system
 import 'models/badge.dart';
 
 // Import providers needed for AppUsageService start/stop
-import 'providers/auth_provider.dart'; // Provides authStateProvider
+import 'providers/auth_provider.dart'; // Provides authStateProvider and demoModeProvider
 import 'providers/user_objective_provider.dart'; // Provides appUsageServiceProvider
 import 'providers/mood_provider.dart'; // Provides moodStatsProvider
 import 'providers/badge_provider.dart'; // Import badge provider to activate the badge system
@@ -56,6 +56,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Charger les variables d'environnement
+  bool supabaseInitOk = true;
+  bool usingDemoDefaults = false;
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
@@ -75,10 +77,14 @@ void main() async {
       ),
       debug: true,
     );
+    usingDemoDefaults =
+        (dotenv.env['SUPABASE_URL'] == null ||
+            dotenv.env['SUPABASE_ANON_KEY'] == null);
     if (kDebugMode) {
       debugPrint('Supabase initialized successfully');
     }
   } catch (e) {
+    supabaseInitOk = false;
     if (kDebugMode) {
       debugPrint('Error initializing Supabase: $e');
     }
@@ -99,13 +105,7 @@ void main() async {
   await Hive.openBox<Challenge>('challenges');
   await Hive.openBox<MoodEntry>('moods');
   await Hive.openBox<ScreenTimeEntry>('screen_time');
-  try {
-    await Hive.openBox<Badge>('badges');
-  } catch (e) {
-    // Handles older data written with a different typeId.
-    await Hive.deleteBoxFromDisk('badges');
-    await Hive.openBox<Badge>('badges');
-  }
+  await Hive.openBox<Badge>('badges'); // Open the new badges box
 
   // Create a ProviderContainer to initialize services before the app runs.
   final container = ProviderContainer();
@@ -114,6 +114,16 @@ void main() async {
   final notificationService = container.read(notificationServiceProvider);
   await notificationService.init();
   notificationService.setNavigatorKey(navigatorKey); // Set the navigator key
+
+  // Activer automatiquement le mode démo si Supabase n'est pas prêt
+  if (!supabaseInitOk || usingDemoDefaults) {
+    try {
+      container.read(demoModeProvider.notifier).state = true;
+      if (kDebugMode) {
+        debugPrint('Demo mode enabled (no Supabase config or init failed).');
+      }
+    } catch (_) {}
+  }
 
   runApp(
     UncontrolledProviderScope(
@@ -195,6 +205,12 @@ class SocialBalansAppMain extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
     final userPrefs = ref.watch(userPreferencesProvider);
+    final demoMode = ref.watch(demoModeProvider);
+
+    // Si déjà en mode démo, s'assurer que le suivi démarre
+    if (demoMode) {
+      ref.read(appUsageServiceProvider).startTracking();
+    }
 
     // IMPORTANT: Activer les systèmes en arrière-plan
     ref.read(badgeControllerProvider);
@@ -215,6 +231,18 @@ class SocialBalansAppMain extends ConsumerWidget {
       }
     });
 
+  // Démarrer/arrêter le suivi du temps d'écran automatiquement quand le mode démo change
+    ref.listen<bool>(demoModeProvider, (previous, next) {
+      final appUsageService = ref.read(appUsageServiceProvider);
+      if (next == true) {
+        debugPrint('Demo mode active: starting AppUsageService tracking.');
+        appUsageService.startTracking();
+      } else {
+        debugPrint('Demo mode disabled: stopping AppUsageService tracking.');
+        appUsageService.stopTracking();
+      }
+    });
+
     // Listen for notification settings changes and update schedule
     ref.listen<UserPreferences>(userPreferencesProvider, (previous, next) {
       if (previous != next) {
@@ -223,7 +251,7 @@ class SocialBalansAppMain extends ConsumerWidget {
       }
     });
 
-    return MaterialApp(
+  return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'Social Balans',
       debugShowCheckedModeBanner: false,
@@ -232,13 +260,17 @@ class SocialBalansAppMain extends ConsumerWidget {
       themeMode: userPrefs.darkMode
           ? ThemeMode.dark
           : ThemeMode.light, // Use themeMode from provider
-      home: authState.when(
-        data: (session) {
-          return session != null ? const ModernHome() : const LoginScreen();
-        },
-        loading: () => const ModernSplashScreen(),
-        error: (error, stack) => ErrorScreen(error: error.toString()),
-      ),
+      home: demoMode
+          ? const ModernHome()
+          : authState.when(
+              data: (session) {
+                return session != null
+                    ? const ModernHome()
+                    : const LoginScreen();
+              },
+              loading: () => const ModernSplashScreen(),
+              error: (error, stack) => ErrorScreen(error: error.toString()),
+            ),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
@@ -406,8 +438,8 @@ class _ModernHomeState extends ConsumerState<ModernHome> {
     );
     // If a mood was successfully entered, refresh relevant providers
     if (result == true && mounted) {
-      ref.invalidate(moodStatsProvider);
-      ref.invalidate(userStreakProvider);
+  ref.invalidate(moodStatsProvider);
+  ref.invalidate(userStreakProvider);
     }
   }
 

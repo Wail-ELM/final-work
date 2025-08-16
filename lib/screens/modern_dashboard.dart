@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:social_balans/models/challenge.dart';
 
 import '../providers/mood_provider.dart';
 import '../providers/challenge_provider.dart';

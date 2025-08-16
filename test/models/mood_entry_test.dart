@@ -17,7 +17,7 @@ void main() {
       expect(entry.note, 'Goed');
     });
 
-    test('toJson/fromJson rondje', () {
+    test('toJson/fromJson ronde', () {
       final json = entry.toJson();
       final from = MoodEntry.fromJson(json);
       expect(from, equals(entry));
@@ -29,7 +29,7 @@ void main() {
       expect(copy.id, entry.id);
     });
 
-    test('gelijkheid onderscheidt verschillende instanties', () {
+    test('gelijkheid onderscheidt instanties', () {
       final other = entry.copyWith(id: 'm2');
       expect(other == entry, false);
     });

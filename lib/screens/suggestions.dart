@@ -41,6 +41,7 @@ final filteredSuggestionsProvider = Provider<List<ChallengeSuggestion>>((ref) {
           ? allSuggestions
           : allSuggestions.where((s) => s.difficulty == difficulty).toList();
     case SuggestionFilter.all:
+    default:
       return allSuggestions;
   }
 });
@@ -254,7 +255,6 @@ class _SuggestionCard extends StatelessWidget {
                       ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
                 ElevatedButton.icon(
-                  key: Key('accept_challenge_${suggestion.id}'),
                   onPressed: onAccepted,
                   icon: const Icon(Icons.check_circle_outline),
                   label: const Text('Accepteren'),

@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:social_balans/core/design_system.dart';
 import 'package:social_balans/models/challenge.dart';
 import 'package:social_balans/models/challenge_category_adapter.dart';
-import '../core/design_system.dart';
 
 class ChallengeCard extends StatelessWidget {
   final Challenge challenge;
-  final VoidCallback? onToggle;
-  final VoidCallback? onDelete; // optional delete
+  final VoidCallback onToggle;
 
   const ChallengeCard({
-    Key? key,
+    super.key,
     required this.challenge,
-    this.onToggle,
-    this.onDelete,
-  }) : super(key: key);
+    required this.onToggle,
+  });
 
   Color _getCategoryColor(ChallengeCategory category, BuildContext context) {
     switch (category) {
@@ -133,16 +131,6 @@ class ChallengeCard extends StatelessWidget {
             ],
           ),
         const Spacer(),
-        if (onDelete != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-              tooltip: 'Verwijderen',
-              icon: const Icon(Icons.delete_outline, size: 20),
-              color: theme.colorScheme.error,
-              onPressed: onDelete,
-            ),
-          ),
         ElevatedButton(
           onPressed: onToggle,
           style: ElevatedButton.styleFrom(

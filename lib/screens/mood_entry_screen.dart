@@ -71,7 +71,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Fout: gebruiker niet ingelogd.'),
+              content: Text('Erreur: Gebruiker niet ingelogd.'),
               backgroundColor: Colors.red),
         );
         setState(() => _isLoading = false);

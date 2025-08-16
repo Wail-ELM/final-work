@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:collection/collection.dart';
 import '../models/mood_entry.dart';
+import '../models/screen_time_entry.dart';
 
 /// Service d'analyse statistique pour calculer les corrélations réelles
 /// entre les données de l'utilisateur.
@@ -12,7 +13,7 @@ class RealCorrelationService {
     required Map<DateTime, Duration> screenTimeData,
   }) {
     if (moodEntries.length < 3 || screenTimeData.length < 3) {
-      return _getEmptyResult('Onvoldoende data voor analyse.');
+  return _getEmptyResult('Onvoldoende data voor analyse.');
     }
 
     // 1. Préparer les données pour l'analyse
@@ -165,8 +166,8 @@ class RealCorrelationService {
       'significantApps': [],
       'optimalScreenTime': 0,
       'recommendations': [
-        reason,
-        'Blijf je humeur en schermtijd registreren voor een nauwkeurigere analyse.'
+  reason,
+  'Blijf je humeur en schermtijd registreren voor een nauwkeurigere analyse.'
       ],
       'isEmpty': true,
     };

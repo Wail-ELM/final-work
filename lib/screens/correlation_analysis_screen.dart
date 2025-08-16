@@ -16,7 +16,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Correlatie-analyse'),
+  title: const Text('Correlatie-analyse'),
         elevation: 0,
       ),
       body: weeklyScreenTime.when(
@@ -172,7 +172,7 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
                       reservedSize: 30,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
-                        final style = const TextStyle(
+                        final style = TextStyle(
                           color: Colors.grey,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
@@ -281,16 +281,16 @@ class CorrelationAnalysisScreen extends ConsumerWidget {
     Color color;
 
     if (absCorrelation >= 0.7) {
-      strength = 'Sterk';
+  strength = 'Sterk';
       color = correlation < 0 ? AppDesignSystem.error : AppDesignSystem.success;
     } else if (absCorrelation >= 0.5) {
-      strength = 'Matig';
+  strength = 'Matig';
       color = correlation < 0 ? Colors.orange : Colors.lightGreen;
     } else if (absCorrelation >= 0.3) {
-      strength = 'Zwak';
+  strength = 'Zwak';
       color = correlation < 0 ? Colors.deepOrange[300]! : Colors.green[300]!;
     } else {
-      strength = 'Zeer zwak';
+  strength = 'Zeer zwak';
       color = Colors.grey;
     }
 

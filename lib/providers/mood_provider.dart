@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import '../models/mood_entry.dart';
 import '../services/user_data_service.dart';
-import './auth_provider.dart';
 import '../services/auth_service.dart';
 import '../services/demo_data_service.dart';
 
@@ -50,56 +49,34 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
   }
 
   Future<void> add(MoodEntry entry) async {
-    final user = _authService.currentUser;
-    if (user == null || DemoDataService.isDemoMode(user.id)) {
-      return; // Ignorer si pas d'utilisateur authentifié ou mode démo
-    }
     // Sauvegarder localement d'abord
     await _box.put(entry.id, entry);
     state = [...state, entry];
 
-    try {
-      await _userDataService.addMoodEntry(
-        id: entry.id,
-        userId: user.id,
-        moodValue: entry.moodValue,
-        note: entry.note,
-      );
-    } catch (e) {
-      print('Erreur lors de la synchronisation avec Supabase: $e');
-      // TODO: Ajouter à une file d'attente pour retry plus tard
+    // Puis synchroniser avec Supabase
+    final user = _authService.currentUser;
+    if (user != null) {
+      try {
+        await _userDataService.addMoodEntry(
+          userId: user.id,
+          moodValue: entry.moodValue,
+          note: entry.note,
+        );
+      } catch (e) {
+        print('Erreur lors de la synchronisation avec Supabase: $e');
+        // TODO: Ajouter à une file d'attente pour retry plus tard
+      }
     }
   }
 
   Future<void> removeAt(int index) async {
     if (index < 0 || index >= state.length) return;
     final entry = state[index];
-
-    // Supprimer côté serveur si possible
-    final user = _authService.currentUser;
-    if (user != null && !DemoDataService.isDemoMode(user.id)) {
-      try {
-        await _userDataService.deleteMoodEntry(id: entry.id);
-      } catch (e) {
-        print('Erreur lors de la suppression sur Supabase: $e');
-      }
-    }
-
     await _box.delete(entry.id);
     state = state.where((e) => e.id != entry.id).toList();
   }
 
   Future<void> remove(String id) async {
-    // Supprimer côté serveur si possible
-    final user = _authService.currentUser;
-    if (user != null && !DemoDataService.isDemoMode(user.id)) {
-      try {
-        await _userDataService.deleteMoodEntry(id: id);
-      } catch (e) {
-        print('Erreur lors de la suppression sur Supabase: $e');
-      }
-    }
-
     await _box.delete(id);
     state = state.where((e) => e.id != id).toList();
   }
@@ -234,7 +211,7 @@ final moodSyncProvider = FutureProvider<void>((ref) async {
     await box.clear();
 
     for (final entry in moodEntries) {
-      await box.put(entry.id, entry);
+      await box.add(entry);
     }
   } catch (e) {
     // En cas d'erreur, garder les données locales
@@ -253,12 +230,11 @@ final addMoodEntryProvider =
   }
 
   final box = Hive.box<MoodEntry>('moods');
-  await box.put(entry.id, entry);
+  await box.add(entry);
 
   try {
     final userDataService = ref.read(userDataServiceProvider);
     await userDataService.addMoodEntry(
-      id: entry.id,
       userId: entry.userId,
       moodValue: entry.moodValue,
       note: entry.note,
@@ -272,17 +248,6 @@ final addMoodEntryProvider =
 final deleteMoodEntryProvider =
     FutureProvider.family<void, String>((ref, id) async {
   final box = ref.read(moodBoxProvider);
-
-  // Supprimer côté serveur si possible
-  final user = ref.read(authServiceProvider).currentUser;
-  if (user != null && !DemoDataService.isDemoMode(user.id)) {
-    try {
-      final userDataService = ref.read(userDataServiceProvider);
-      await userDataService.deleteMoodEntry(id: id);
-    } catch (e) {
-      print('Erreur lors de la suppression sur Supabase: $e');
-    }
-  }
-
-  await box.delete(id);
+  final entry = box.values.firstWhere((e) => e.id == id);
+  await entry.delete();
 });
