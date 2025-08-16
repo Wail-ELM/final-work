@@ -7,6 +7,7 @@ import 'package:social_balans/models/challenge_category_adapter.dart';
 import 'package:social_balans/providers/auth_provider.dart';
 import 'package:social_balans/providers/challenge_provider.dart';
 import 'package:social_balans/services/challenge_suggestion_service.dart';
+import '../services/demo_data_service.dart';
 
 // Enum for the selected filter type
 enum SuggestionFilter { all, category, difficulty }
@@ -40,8 +41,7 @@ final filteredSuggestionsProvider = Provider<List<ChallengeSuggestion>>((ref) {
       return difficulty == null
           ? allSuggestions
           : allSuggestions.where((s) => s.difficulty == difficulty).toList();
-    case SuggestionFilter.all:
-    default:
+  case SuggestionFilter.all:
       return allSuggestions;
   }
 });
@@ -54,7 +54,7 @@ class SuggestionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final suggestions = ref.watch(filteredSuggestionsProvider);
-    final userId = ref.watch(authServiceProvider).currentUser?.id;
+  final userId = ref.watch(authServiceProvider).currentUser?.id ?? DemoDataService.demoUserId;
 
     return Scaffold(
       appBar: AppBar(
@@ -80,20 +80,14 @@ class SuggestionsScreen extends ConsumerWidget {
                         return _SuggestionCard(
                           suggestion: suggestion,
                           onAccepted: () {
-                            if (userId != null) {
-                              final newChallenge =
-                                  suggestion.toChallenge(userId);
-                              ref
-                                  .read(allChallengesProvider.notifier)
-                                  .add(newChallenge);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text('Nieuwe uitdaging geaccepteerd!'),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            }
+                            final newChallenge = suggestion.toChallenge(userId);
+                            ref.read(allChallengesProvider.notifier).add(newChallenge);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Nieuwe uitdaging geaccepteerd!'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
                           },
                         );
                       },

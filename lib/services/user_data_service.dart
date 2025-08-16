@@ -155,13 +155,18 @@ class UserDataService {
     required String userId,
     required int moodValue,
     String? note,
+    String? id, // allow client-provided id for stable sync
+    DateTime? createdAt, // allow client-provided timestamp
   }) async {
     try {
-      await _supabase.from('mood_entries').insert({
+      final payload = <String, dynamic>{
         'user_id': userId,
         'mood_value': moodValue,
         'note': note,
-      });
+      };
+      if (id != null) payload['id'] = id;
+      if (createdAt != null) payload['created_at'] = createdAt.toIso8601String();
+      await _supabase.from('mood_entries').insert(payload);
     } catch (e) {
       throw _handleError(e);
     }
@@ -210,7 +215,8 @@ class UserDataService {
     bool? isDone,
   }) async {
     try {
-      var query = _supabase.from('challenges').select().eq('user_id', userId);
+  // Hybrid model: read from view that joins user_challenges + challenge_templates
+  var query = _supabase.from('challenges_view').select().eq('user_id', userId);
 
       if (isDone != null) {
         query = query.eq('is_done', isDone);
@@ -225,21 +231,33 @@ class UserDataService {
 
   Future<void> addChallenge({
     required String userId,
+    required String id,
     required String title,
     required String description,
     required String category,
     required DateTime startDate,
     DateTime? endDate,
+    bool isDone = false,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) async {
     try {
-      await _supabase.from('challenges').insert({
-        'user_id': userId,
-        'title': title,
-        'description': description,
-        'category': category,
-        'start_date': startDate.toIso8601String().split('T')[0],
-        'end_date': endDate?.toIso8601String().split('T')[0],
-      });
+      // Hybrid model: ensure or reuse template, then insert user_challenge via RPC
+      await _supabase.rpc(
+        'ensure_template_and_add_user_challenge',
+        params: {
+          'p_user_id': userId,
+          'p_title': title,
+          'p_description': description,
+          'p_category': category,
+          'p_start_date': startDate.toIso8601String().split('T')[0],
+          'p_end_date': endDate?.toIso8601String().split('T')[0],
+          'p_is_done': isDone,
+          'p_id': id,
+          'p_created_at': createdAt?.toIso8601String(),
+          'p_updated_at': (updatedAt ?? DateTime.now()).toIso8601String(),
+        },
+      );
     } catch (e) {
       throw _handleError(e);
     }
@@ -254,19 +272,32 @@ class UserDataService {
     bool? isDone,
   }) async {
     try {
-      final updates = <String, dynamic>{
-        'updated_at': DateTime.now().toIso8601String(),
-      };
+      // Hybrid model: update via RPC (can change template mapping and progress)
+      await _supabase.rpc(
+        'update_user_challenge',
+        params: {
+          'p_id': challengeId,
+          if (title != null) 'p_title': title,
+          if (description != null) 'p_description': description,
+          if (category != null) 'p_category': category,
+          if (endDate != null)
+            'p_end_date': endDate.toIso8601String().split('T')[0],
+          if (isDone != null) 'p_is_done': isDone,
+        },
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
 
-      if (title != null) updates['title'] = title;
-      if (description != null) updates['description'] = description;
-      if (category != null) updates['category'] = category;
-      if (endDate != null) {
-        updates['end_date'] = endDate.toIso8601String().split('T')[0];
-      }
-      if (isDone != null) updates['is_done'] = isDone;
-
-      await _supabase.from('challenges').update(updates).eq('id', challengeId);
+  Future<void> deleteChallenge({
+    required String challengeId,
+  }) async {
+    try {
+      // Hybrid model: delete via RPC
+      await _supabase.rpc('delete_user_challenge', params: {
+        'p_id': challengeId,
+      });
     } catch (e) {
       throw _handleError(e);
     }

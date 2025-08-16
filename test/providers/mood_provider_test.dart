@@ -39,7 +39,7 @@ class StubUserDataService extends UserDataService {
   }
 
   @override
-  Future<void> addMoodEntry({required String userId, required int moodValue, String? note}) async {
+  Future<void> addMoodEntry({required String userId, required int moodValue, String? note, String? id, DateTime? createdAt}) async {
     addCalled = true;
   }
 }

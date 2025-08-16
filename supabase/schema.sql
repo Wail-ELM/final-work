@@ -20,12 +20,12 @@ create table mood_entries (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Create screen time entries table
 create table screen_time_entries (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references profiles(id) on delete cascade not null,
   app_name text not null,
-  duration interval not null,
+  -- Store duration in seconds (integer) to match the app model
+  duration integer not null,
   date date not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -48,7 +48,8 @@ create table challenges (
 create table user_preferences (
   user_id uuid references profiles(id) on delete cascade primary key,
   notifications_enabled boolean default true,
-  daily_screen_time_goal interval default interval '4 hours',
+  -- Store daily screen time goal in seconds (integer) to match the app
+  daily_screen_time_goal integer default 14400, -- 4 hours in seconds
   focus_areas text[] default array['Focus', 'Ontspanning', 'Sociale contacten'],
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null

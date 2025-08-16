@@ -1,8 +1,6 @@
 -- Fonctions utiles pour Social Balans
 
--- 1. Fonction pour obtenir les statistiques d'humeur
 CREATE OR REPLACE FUNCTION get_mood_statistics(p_user_id UUID)
-RETURNS JSON AS $$
 DECLARE
   result JSON;
 BEGIN
@@ -47,8 +45,19 @@ $$ LANGUAGE plpgsql;
 
 -- 2. Fonction pour analyser le temps d'écran
 CREATE OR REPLACE FUNCTION analyze_screen_time(
+-- 1b. Fonction pour compter les jours uniques avec une entrée d'humeur (utilisée par le frontend)
+CREATE OR REPLACE FUNCTION public.get_unique_mood_days(p_user_id UUID)
+RETURNS INTEGER AS $$
+DECLARE
+  day_count INTEGER;
+BEGIN
+  SELECT COUNT(DISTINCT DATE(created_at)) INTO day_count
+  FROM public.mood_entries
+  WHERE user_id = p_user_id;
+  RETURN COALESCE(day_count, 0);
+END;
+$$ LANGUAGE plpgsql STABLE;
   p_user_id UUID,
-  p_start_date DATE,
   p_end_date DATE
 )
 RETURNS JSON AS $$

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/mood_provider.dart';
-import '../providers/challenge_provider.dart';
+import 'package:social_balans/providers/mood_provider.dart';
+import 'package:social_balans/providers/challenge_provider.dart';
 import '../providers/user_objective_provider.dart';
 import '../widgets/dashboard/index.dart';
 import '../core/design_system.dart';
 
-/// ModernDashboard est l'écran principal de l'application.
-/// Il affiche un aperçu des statistiques, de l'humeur, des défis et des insights de l'utilisateur.
+/// ModernDashboard is het hoofdscherm van de applicatie.
+/// Het toont een overzicht van statistieken, stemming, uitdagingen en inzichten van de gebruiker.
 class ModernDashboard extends ConsumerStatefulWidget {
   const ModernDashboard({super.key});
 
@@ -64,7 +64,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
 
   @override
   Widget build(BuildContext context) {
-    // Récupération des données
+  // Gegevens ophalen
     final moodStats = ref.watch(moodStatsProvider);
     final challenges = ref
         .watch(allChallengesProvider)
@@ -87,7 +87,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
 
     return RefreshIndicator(
       onRefresh: () async {
-        // Actualiser toutes les données
+  // Alle gegevens verversen
         ref.refresh(moodStatsProvider);
         ref.refresh(allChallengesProvider);
         ref.refresh(userStreakProvider);
@@ -98,7 +98,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // AppBar personnalisée
+          // Aangepaste AppBar
           const DashboardAppBar(),
 
           // Contenu principal
@@ -112,7 +112,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
                     position: _slideAnimation,
                     child: Column(
                       children: [
-                        // Grille de statistiques
+                        // Statistiekenraster
                         screenTimeAsync.when(
                           data: (screenTime) => StatsGrid(
                             userStreak: userStreak,
@@ -133,7 +133,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
 
                         const SizedBox(height: AppDesignSystem.space32),
 
-                        // Objectif quotidien
+                        // Dagelijks doel
                         dailyObjectiveAsync.when(
                           data: (objective) => weeklyProgressAsync.when(
                             data: (progress) => ObjectiveCard(
@@ -161,22 +161,22 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
 
                         const SizedBox(height: AppDesignSystem.space32),
 
-                        // Section Humeur
+                        // Sectie stemming
                         MoodSection(stats: statsMap),
 
                         const SizedBox(height: AppDesignSystem.space32),
 
-                        // Section Défis
+                        // Sectie uitdagingen
                         ChallengesSection(challenges: challenges),
 
                         const SizedBox(height: AppDesignSystem.space32),
 
-                        // Section Insights
+                        // Sectie inzichten
                         InsightsSection(stats: statsMap),
 
                         const SizedBox(height: AppDesignSystem.space32),
 
-                        // Citation du jour
+                        // Quote van de dag
                         const QuoteCard(),
 
                         const SizedBox(height: AppDesignSystem.space64),

@@ -1,14 +1,10 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../main.dart'; // Import main.dart to get access to sharedPreferencesProvider
-import '../models/challenge_category_adapter.dart';
+import 'package:social_balans/models/challenge_category_adapter.dart';
 import '../services/app_usage_service.dart';
 import '../providers/mood_provider.dart';
 import '../providers/auth_provider.dart';
-import '../services/demo_data_service.dart';
 import '../services/user_data_service.dart';
+import 'package:flutter/foundation.dart';
 
 // Define the new AppUsageService provider
 final appUsageServiceProvider = Provider<AppUsageService>((ref) {
@@ -20,52 +16,21 @@ final userObjectiveProvider = StateProvider<ChallengeCategory?>((_) => null);
 
 // Provider voor de streak van de gebruiker
 final userStreakProvider = Provider<int>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  final currentUser = authService.currentUser;
-
-  // Mode démo
-  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-    return 12; // Streak de démo de 12 jours
-  }
-
   final stats = ref.watch(moodStatsProvider);
-  // Calculer le streak basé sur les mood entries consécutives
   return _calculateStreak(stats.recentEntries);
 });
 
 // Provider voor het scherm tijd
 final screenTimeProvider = FutureProvider<Duration?>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  final currentUser = authService.currentUser;
   final appUsageService = ref.watch(appUsageServiceProvider);
-
-  // Mode démo
-  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-    final demoEntries = DemoDataService.generateDemoScreenTimeEntries();
-    final today = DateTime.now();
-    final todayEntries = demoEntries.where((entry) {
-      return entry.date.year == today.year &&
-          entry.date.month == today.month &&
-          entry.date.day == today.day;
-    }).toList();
-
-    if (todayEntries.isEmpty) {
-      return const Duration(hours: 4, minutes: 30);
-    }
-
-    return todayEntries.fold<Duration>(
-      Duration.zero,
-      (total, entry) => total + entry.duration,
-    );
-  }
 
   try {
     final result =
         await appUsageService.getTotalScreenTimeForDate(DateTime.now());
     return result;
   } catch (e) {
-    // En cas d'erreur, retourner null pour indiquer l'indisponibilité
-    print('Erreur lors de la récupération du temps d\'écran: $e');
+    // Bij fout: null teruggeven om onbeschikbaarheid aan te geven
+    debugPrint('Fout bij ophalen van schermtijd: $e');
     return null;
   }
 });
@@ -94,18 +59,10 @@ final periodicScreenTimeDataProvider = FutureProvider.family<
 
 // Provider voor het dagelijkse doel
 final dailyObjectiveProvider = FutureProvider<String>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  final currentUser = authService.currentUser;
-
-  // Mode démo
-  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-    return "Verminder schermtijd tot onder 4u per dag";
-  }
-
   final stats = ref.watch(moodStatsProvider);
   final screenTime = await ref.watch(screenTimeProvider.future);
 
-  // Générer un objectif basé sur les données de l'utilisateur
+  // Doel genereren op basis van gebruikersdata
   if ((screenTime?.inHours ?? 0) > 6) {
     return "Focus op drastische vermindering schermtijd";
   } else if ((screenTime?.inHours ?? 0) > 4) {
@@ -119,27 +76,19 @@ final dailyObjectiveProvider = FutureProvider<String>((ref) async {
 
 // Provider voor wekelijkse voortgang
 final weeklyProgressProvider = FutureProvider<double>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  final currentUser = authService.currentUser;
-
-  // Mode démo - simulation d'un progrès de 75%
-  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-    return 0.75;
-  }
-
   final stats = ref.watch(moodStatsProvider);
   final screenTime = await ref.watch(screenTimeProvider.future);
 
-  // Calculer le progrès basé sur les métriques
+  // Vooruitgang berekenen op basis van metrics
   double progress = 0.0;
 
-  // 40% basé sur la stabilité de l'humeur
+  // 40% gebaseerd op stemmingsstabiliteit
   if (stats.count > 5) {
     progress += 0.4 * (stats.averageMood / 5.0);
   }
 
-  // 60% basé sur le respect de l'objectif de temps d'écran
-  final targetScreenTime = 4 * 60; // 4 heures en minutes
+  // 60% gebaseerd op naleving schermtijd doel
+  final targetScreenTime = 4 * 60; // 4 uur in minuten
   final actualScreenTime = screenTime?.inMinutes ?? 0;
   if (actualScreenTime <= targetScreenTime) {
     progress += 0.6;

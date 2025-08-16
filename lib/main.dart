@@ -6,6 +6,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -55,6 +57,15 @@ final sharedPreferencesProvider =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize locale data for date formatting (fixes LocaleDataException for nl_NL)
+  try {
+    // Set default locale early
+    Intl.defaultLocale = 'nl_NL';
+    // Initialize both generic Dutch and region-specific, covering all DateFormat usages
+    await initializeDateFormatting('nl', null);
+    await initializeDateFormatting('nl_NL', null);
+  } catch (_) {}
+
   // Charger les variables d'environnement
   bool supabaseInitOk = true;
   bool usingDemoDefaults = false;
@@ -77,9 +88,8 @@ void main() async {
       ),
       debug: true,
     );
-    usingDemoDefaults =
-        (dotenv.env['SUPABASE_URL'] == null ||
-            dotenv.env['SUPABASE_ANON_KEY'] == null);
+    usingDemoDefaults = (dotenv.env['SUPABASE_URL'] == null ||
+        dotenv.env['SUPABASE_ANON_KEY'] == null);
     if (kDebugMode) {
       debugPrint('Supabase initialized successfully');
     }
@@ -115,7 +125,7 @@ void main() async {
   await notificationService.init();
   notificationService.setNavigatorKey(navigatorKey); // Set the navigator key
 
-  // Activer automatiquement le mode démo si Supabase n'est pas prêt
+  // Demo-modus automatisch inschakelen als Supabase niet klaar is
   if (!supabaseInitOk || usingDemoDefaults) {
     try {
       container.read(demoModeProvider.notifier).state = true;
@@ -207,7 +217,7 @@ class SocialBalansAppMain extends ConsumerWidget {
     final userPrefs = ref.watch(userPreferencesProvider);
     final demoMode = ref.watch(demoModeProvider);
 
-    // Si déjà en mode démo, s'assurer que le suivi démarre
+    // Als al in demomodus, zorg dat tracking start
     if (demoMode) {
       ref.read(appUsageServiceProvider).startTracking();
     }
@@ -231,7 +241,7 @@ class SocialBalansAppMain extends ConsumerWidget {
       }
     });
 
-  // Démarrer/arrêter le suivi du temps d'écran automatiquement quand le mode démo change
+    // Start/stop schermtijd-tracking automatisch wanneer demomodus verandert
     ref.listen<bool>(demoModeProvider, (previous, next) {
       final appUsageService = ref.read(appUsageServiceProvider);
       if (next == true) {
@@ -251,7 +261,7 @@ class SocialBalansAppMain extends ConsumerWidget {
       }
     });
 
-  return MaterialApp(
+    return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'Social Balans',
       debugShowCheckedModeBanner: false,
@@ -281,6 +291,7 @@ class SocialBalansAppMain extends ConsumerWidget {
         '/profile': (context) => const ProfileScreen(), // Added route
         '/notification-settings': (context) =>
             const NotificationSettingsScreen(),
+        '/suggestions': (context) => const SuggestionsScreen(),
       },
     );
   }
@@ -438,8 +449,8 @@ class _ModernHomeState extends ConsumerState<ModernHome> {
     );
     // If a mood was successfully entered, refresh relevant providers
     if (result == true && mounted) {
-  ref.invalidate(moodStatsProvider);
-  ref.invalidate(userStreakProvider);
+      ref.invalidate(moodStatsProvider);
+      ref.invalidate(userStreakProvider);
     }
   }
 

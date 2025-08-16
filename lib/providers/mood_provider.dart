@@ -4,6 +4,7 @@ import '../models/mood_entry.dart';
 import '../services/user_data_service.dart';
 import '../services/auth_service.dart';
 import '../services/demo_data_service.dart';
+import 'package:flutter/foundation.dart';
 
 final moodsBoxProvider =
     Provider<Box<MoodEntry>>((ref) => Hive.box<MoodEntry>('moods'));
@@ -32,10 +33,10 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
     if (user == null) return;
 
     try {
-      // Charger les entrées d'humeur depuis Supabase
+  // Humeur ingaven laden vanuit Supabase
       final entries = await _userDataService.getMoodEntries(userId: user.id);
 
-      // Mettre à jour le cache local
+  // Lokaal cache bijwerken
       await _box.clear();
       for (final entry in entries) {
         await _box.put(entry.id, entry);
@@ -43,17 +44,17 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
 
       state = entries;
     } catch (e) {
-      // En cas d'erreur, garder les données locales
-      print('Erreur lors du chargement depuis Supabase: $e');
+  // Bij fout: lokale gegevens behouden
+  debugPrint('Fout bij laden vanuit Supabase: $e');
     }
   }
 
   Future<void> add(MoodEntry entry) async {
-    // Sauvegarder localement d'abord
-    await _box.put(entry.id, entry);
+  // Eerst lokaal opslaan
+  await _box.put(entry.id, entry);
     state = [...state, entry];
 
-    // Puis synchroniser avec Supabase
+  // Daarna synchroniseren met Supabase
     final user = _authService.currentUser;
     if (user != null) {
       try {
@@ -61,10 +62,12 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
           userId: user.id,
           moodValue: entry.moodValue,
           note: entry.note,
+          id: entry.id,
+          createdAt: entry.createdAt,
         );
       } catch (e) {
-        print('Erreur lors de la synchronisation avec Supabase: $e');
-        // TODO: Ajouter à une file d'attente pour retry plus tard
+    debugPrint('Fout bij synchronisatie met Supabase: $e');
+    // TODO: Toevoegen aan wachtrij voor later opnieuw proberen
       }
     }
   }
@@ -167,25 +170,22 @@ final moodEntriesProvider = StreamProvider<List<MoodEntry>>((ref) {
 });
 
 final moodStatsProvider = Provider<MoodStats>((ref) {
-  final box = Hive.box<MoodEntry>('moods');
+  // Maak afhankelijk van de actuele lijst uit moodsProvider (reactief op box.watch)
+  final allEntries = ref.watch(moodsProvider);
   final authService = ref.watch(authServiceProvider);
   final currentUser = authService.currentUser;
 
-  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-    final demoEntries = DemoDataService.generateDemoMoodEntries();
-    return MoodStats.fromEntries(demoEntries);
-  }
-
   try {
-    final entries =
-        box.values.where((entry) => entry.userId == currentUser.id).toList();
+    final effectiveUserId = currentUser?.id ?? DemoDataService.demoUserId;
+    final entries = allEntries
+        .where((entry) => entry.userId == effectiveUserId)
+        .toList();
     return MoodStats.fromEntries(entries);
   } catch (e) {
-    // En cas d'erreur, retourner des stats vides mais valides
-    print('Erreur lors du calcul des stats d\'humeur: $e');
+    debugPrint('Fout bij berekenen van stemmingsstatistieken: $e');
     return MoodStats(
       count: 0,
-      averageMood: 3.0, // Valeur neutre par défaut
+      averageMood: 3.0,
       todayMood: null,
       lastWeekAverage: 3.0,
       recentEntries: [],
@@ -197,8 +197,8 @@ final moodSyncProvider = FutureProvider<void>((ref) async {
   final authService = ref.watch(authServiceProvider);
   final currentUser = authService.currentUser;
 
-  // Pas de sync en mode démo
-  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
+  // Geen sync als geen gebruiker ingelogd is
+  if (currentUser == null) {
     return;
   }
 
@@ -211,11 +211,11 @@ final moodSyncProvider = FutureProvider<void>((ref) async {
     await box.clear();
 
     for (final entry in moodEntries) {
-      await box.add(entry);
+  await box.put(entry.id, entry);
     }
   } catch (e) {
-    // En cas d'erreur, garder les données locales
-    print('Erreur lors du chargement depuis Supabase: $e');
+    // Bij fout: lokale gegevens behouden
+    debugPrint('Fout bij laden vanuit Supabase: $e');
   }
 });
 
@@ -224,24 +224,25 @@ final addMoodEntryProvider =
   final authService = ref.watch(authServiceProvider);
   final currentUser = authService.currentUser;
 
-  // Pas d'ajout en mode démo
-  if (currentUser == null || DemoDataService.isDemoMode(currentUser.id)) {
-    return;
-  }
-
+  // Offline toevoegen: schrijf lokaal zelfs zonder ingelogde gebruiker
   final box = Hive.box<MoodEntry>('moods');
-  await box.add(entry);
+  await box.put(entry.id, entry);
 
-  try {
-    final userDataService = ref.read(userDataServiceProvider);
-    await userDataService.addMoodEntry(
-      userId: entry.userId,
-      moodValue: entry.moodValue,
-      note: entry.note,
-    );
-  } catch (e) {
-    print('Erreur lors de la synchronisation avec Supabase: $e');
-    // TODO: Ajouter à une file d'attente pour retry plus tard
+  // Then try to sync if a user is logged in
+  if (currentUser != null) {
+    try {
+      final userDataService = ref.read(userDataServiceProvider);
+      await userDataService.addMoodEntry(
+  userId: entry.userId,
+  moodValue: entry.moodValue,
+  note: entry.note,
+  id: entry.id,
+  createdAt: entry.createdAt,
+      );
+    } catch (e) {
+      debugPrint('Fout bij synchronisatie met Supabase: $e');
+      // TODO: Toevoegen aan wachtrij voor later opnieuw proberen
+    }
   }
 });
 

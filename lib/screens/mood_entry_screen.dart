@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../providers/mood_provider.dart';
+import '../services/demo_data_service.dart';
 import '../models/mood_entry.dart';
 import 'package:uuid/uuid.dart';
 
@@ -67,20 +68,11 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
     setState(() => _isLoading = true);
 
     try {
-      final user = ref.read(authServiceProvider).currentUser;
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Erreur: Gebruiker niet ingelogd.'),
-              backgroundColor: Colors.red),
-        );
-        setState(() => _isLoading = false);
-        return;
-      }
+  final user = ref.read(authServiceProvider).currentUser;
 
       final moodEntry = MoodEntry(
         id: const Uuid().v4(),
-        userId: user.id,
+  userId: user?.id ?? DemoDataService.demoUserId,
         moodValue: _selectedMood,
         note: _noteController.text.trim().isEmpty
             ? null

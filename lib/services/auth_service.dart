@@ -11,36 +11,35 @@ class AuthService {
   SupabaseClient get _supabase => Supabase.instance.client;
   final _uuid = const Uuid();
 
-  // Stream des changements d'état d'authentification
-  // Emet une valeur initiale (session courante ou null) immédiatement
-  // pour éviter un écran de chargement infini si aucun événement n'arrive.
+  // Auth status stream met initiële waarde (huidige sessie of null)
+  // om eindeloze laadschermen te vermijden als er geen events komen.
   Stream<Session?> get authStateChanges async* {
     try {
-      // Emettre d'abord la session actuelle (peut être null)
+  // Eerst de huidige sessie uitsturen (kan null zijn)
       final initial = _supabase.auth.currentSession;
       yield initial;
 
-      // Puis relayer les changements d'état
+  // Daarna statuswijzigingen doorgeven
       yield* _supabase.auth
           .onAuthStateChange
           .map((event) => event.session);
     } catch (_) {
-      // Supabase non initialisé: émettre null puis terminer proprement
+  // Supabase niet geïnitialiseerd: null uitsturen en netjes afsluiten
       yield null;
     }
   }
 
-  // Utilisateur actuel
+  // Huidige gebruiker
   User? get currentUser {
     try {
       return _supabase.auth.currentUser;
     } catch (_) {
-      // Supabase niet geïnitialiseerd
+  // Supabase niet geïnitialiseerd
       return null;
     }
   }
 
-  // Inscription avec email/mot de passe
+  // Registratie met e-mail/wachtwoord
   Future<AuthResponse> signUp({
     required String email,
     required String password,
@@ -55,8 +54,7 @@ class AuthService {
         },
       );
 
-      // Le trigger handle_new_user() va créer automatiquement le profil
-      // Pas besoin de créer manuellement le profil ici
+  // DB-trigger handle_new_user() maakt automatisch het profiel aan
 
       return response;
     } catch (e) {
@@ -64,7 +62,7 @@ class AuthService {
     }
   }
 
-  // Connexion avec email/mot de passe
+  // Inloggen met e-mail/wachtwoord
   Future<AuthResponse> signIn({
     required String email,
     required String password,
@@ -79,7 +77,7 @@ class AuthService {
     }
   }
 
-  // Déconnexion
+  // Uitloggen
   Future<void> signOut() async {
     try {
       await _supabase.auth.signOut();
@@ -88,7 +86,7 @@ class AuthService {
     }
   }
 
-  // Réinitialisation du mot de passe
+  // Wachtwoord resetten
   Future<void> resetPassword(String email) async {
     try {
       await _supabase.auth.resetPasswordForEmail(
@@ -101,7 +99,7 @@ class AuthService {
     }
   }
 
-  // Renvoyer un email de confirmation
+  // Bevestigingsmail opnieuw verzenden
   Future<void> resendConfirmationEmail(String email) async {
     try {
       await _supabase.auth.resend(
@@ -113,7 +111,7 @@ class AuthService {
     }
   }
 
-  // Mise à jour du profil
+  // Profiel bijwerken
   Future<void> updateProfile({
     required String userId,
     String? name,
@@ -133,7 +131,7 @@ class AuthService {
     }
   }
 
-  // Génération d'un token de session
+  // Sessie token genereren
   String generateSessionToken() {
     final random = _uuid.v4();
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
@@ -143,10 +141,10 @@ class AuthService {
     return hash.toString();
   }
 
-  // Gestion des erreurs d'authentification
+  // Afhandeling van authenticatiefouten
   AuthException _handleAuthError(dynamic error) {
     if (error is AuthException) {
-      // Gestion spéciale pour l'erreur de confirmation d'email
+  // Speciale afhandeling voor e-mailbevestiging
       if (error.message.toLowerCase().contains('email_not_confirmed') ||
           error.message.toLowerCase().contains('emailnotconfirmed')) {
         return const AuthException(
@@ -154,7 +152,7 @@ class AuthService {
           statusCode: '400',
         );
       }
-      // Gestion des liens expirés
+  // Beheer van verlopen links
       if (error.message.toLowerCase().contains('otp_expired') ||
           error.message.toLowerCase().contains('link is invalid') ||
           error.message.toLowerCase().contains('has expired')) {
@@ -166,23 +164,23 @@ class AuthService {
       return error;
     }
     return const AuthException(
-      'Er is een onverwachte fout opgetreden',
+  'Er is een onverwachte fout opgetreden',
       statusCode: '500',
     );
   }
 }
 
-// Provider pour le service d'authentification
+// Provider voor de authenticatieservice
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService();
 });
 
-// Provider pour l'état d'authentification
+// Provider voor de authenticatiestatus
 final authStateProvider = StreamProvider<Session?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
 });
 
-// Provider pour l'utilisateur actuel
+// Provider voor de huidige gebruiker
 final currentUserProvider = Provider<User?>((ref) {
   return ref.watch(authServiceProvider).currentUser;
 });

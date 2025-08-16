@@ -11,6 +11,7 @@ import '../services/demo_data_service.dart';
 import '../providers/user_preferences_provider.dart';
 import './notification_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AppUsageService {
   final Ref _ref;
@@ -27,6 +28,15 @@ class AppUsageService {
   Future<void> startTracking() async {
     if (kIsWeb) return;
 
+    // If usage access is not granted, try to fetch once (will throw) and log; UI should guide user to settings.
+    try {
+      await AppUsage().getAppUsage(DateTime.now().subtract(const Duration(seconds: 10)), DateTime.now());
+    } catch (e) {
+      debugPrint('AppUsageService: Usage access likely not granted: $e');
+  // Optional: attempt to open Usage Access settings
+  await _openUsageAccessSettings();
+    }
+
     if (_appTrackingTimer == null || !_appTrackingTimer!.isActive) {
       _appTrackingTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
         await _updateCurrentApp();
@@ -42,6 +52,17 @@ class AppUsageService {
     _sessionStartTime = DateTime.now();
     await _updateCurrentApp();
     await _checkScreenTimeLimit();
+  }
+
+  Future<void> _openUsageAccessSettings() async {
+    const androidSettingsUri = 'android.settings.USAGE_ACCESS_SETTINGS';
+    try {
+      // Try launching the Android settings intent via intent: scheme
+      final intentUri = Uri.parse('intent://$androidSettingsUri#Intent;scheme=android;action=$androidSettingsUri;end');
+      await launchUrl(intentUri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      debugPrint('AppUsageService: Unable to open Usage Access settings automatically.');
+    }
   }
 
   Future<void> stopTracking() async {
@@ -91,11 +112,9 @@ class AppUsageService {
   Future<void> _logAppUsage(String packageName, Duration duration) async {
     if (kIsWeb) return;
     final now = DateTime.now();
-  final bool demo = _ref.read(demoModeProvider);
-  final String userId = demo
-    ? DemoDataService.demoUserId
-    : (_ref.read(authServiceProvider).currentUser?.id ??
-      'unknown_user_id');
+  final String userId =
+      _ref.read(authServiceProvider).currentUser?.id ??
+      DemoDataService.demoUserId;
 
     if (userId == 'unknown_user_id') {
       debugPrint('AppUsageService: Attempted to log usage for unknown user.');
@@ -139,11 +158,9 @@ class AppUsageService {
 
   Future<Map<String, Duration>> getAppUsageForDate(DateTime date) async {
     if (kIsWeb) return {};
-  final bool demo = _ref.read(demoModeProvider);
-  final String userId = demo
-    ? DemoDataService.demoUserId
-    : (_ref.read(authServiceProvider).currentUser?.id ??
-      'unknown_user_id');
+  final String userId =
+      _ref.read(authServiceProvider).currentUser?.id ??
+      DemoDataService.demoUserId;
     final entries = _box.values.where((e) =>
         e.userId == userId &&
         e.date.year == date.year &&
@@ -163,15 +180,7 @@ class AppUsageService {
       return null;
     }
     final usage = await getAppUsageForDate(date);
-    // In demo mode we always return accumulated local data (may be zero if none yet)
-    if (! _ref.read(demoModeProvider)) {
-      if (usage.isEmpty &&
-          (_ref.read(authServiceProvider).currentUser?.id ??
-                  'unknown_user_id') ==
-              'unknown_user_id') {
-        return null;
-      }
-    }
+  // Als geen gebruiker ingelogd is, val terug op lokale data voor demo/offline user; als leeg, return Duration.zero
     return usage.values.fold<Duration>(
       Duration.zero,
       (sum, duration) => sum + duration,
@@ -193,13 +202,6 @@ class AppUsageService {
       DateTime endDate) async {
     if (kIsWeb) return {};
 
-  final bool demo = _ref.read(demoModeProvider);
-  final String userId = demo
-    ? DemoDataService.demoUserId
-    : (_ref.read(authServiceProvider).currentUser?.id ??
-      'unknown_user_id');
-  if (!demo && userId == 'unknown_user_id') return {}; // No data for unknown user
-
     final Map<DateTime, Duration> weeklyData = {};
     final normalizedEndDate =
         DateTime(endDate.year, endDate.month, endDate.day);
@@ -218,12 +220,9 @@ class AppUsageService {
   Future<Map<String, Duration>> getAggregatedAppUsage(
       DateTime startDate, DateTime endDate) async {
     if (kIsWeb) return {};
-  final bool demo = _ref.read(demoModeProvider);
-  final String userId = demo
-    ? DemoDataService.demoUserId
-    : (_ref.read(authServiceProvider).currentUser?.id ??
-      'unknown_user_id');
-  if (!demo && userId == 'unknown_user_id') return {};
+  final String userId =
+      _ref.read(authServiceProvider).currentUser?.id ??
+      DemoDataService.demoUserId;
 
     final normalizedStartDate =
         DateTime(startDate.year, startDate.month, startDate.day);
@@ -255,13 +254,6 @@ class AppUsageService {
       return {};
     }
 
-    final String userId =
-        _ref.read(authServiceProvider).currentUser?.id ?? 'unknown_user_id';
-    if (userId == 'unknown_user_id') {
-      debugPrint(
-          "AppUsageService: User is unknown. Returning empty map for period.");
-      return {};
-    }
 
     final Map<DateTime, Duration> periodicData = {};
     final normalizedStartDate =
@@ -303,9 +295,9 @@ class AppUsageService {
           final notificationService = _ref.read(notificationServiceProvider);
           await notificationService.showSimpleNotification(
             id: 99, // Unique ID for screen time notifications
-            title: 'Limite de temps d\'écran dépassée',
-            body:
-                "Vous avez dépassé votre objectif de temps d'écran de ${overage.inMinutes} minutes.",
+      title: 'Schermtijdlimiet overschreden',
+      body:
+        'Je hebt je schermtijd-doel met ${overage.inMinutes} minuten overschreden.',
           );
           await _setLastNotificationDate(today);
         }

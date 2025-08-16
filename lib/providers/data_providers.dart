@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
-import '../models/challenge.dart';
+import 'package:social_balans/models/challenge.dart';
 import '../models/mood_entry.dart';
 
 // Box Providers
