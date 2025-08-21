@@ -70,8 +70,8 @@ class FakeNotificationsPlugin implements FlutterLocalNotificationsPlugin {
 }
 
 void main() {
-  group('NotificationService replanification', () {
-    test("changement d'heure replanifie le rappel", () async {
+  group('NotificationService herplannen', () {
+    test("wijziging van tijd herplant de herinnering", () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
       service.debugSetPluginOverride(fake);
@@ -97,7 +97,7 @@ void main() {
       expect(fake.scheduleCount, 2);
     });
 
-    test('désactivation annule tout', () async {
+  test('uitschakelen annuleert alles', () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
       service.debugSetPluginOverride(fake);

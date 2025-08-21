@@ -6,7 +6,8 @@ import 'package:social_balans/models/challenge.dart';
 import 'package:social_balans/models/challenge_category_adapter.dart';
 import 'package:social_balans/providers/challenge_provider.dart';
 import 'package:social_balans/services/auth_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show User; // alleen voor User type
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show User; // alleen voor User type
 
 class FakeUser extends User {
   FakeUser(String id)
@@ -32,24 +33,26 @@ void main() {
   late ProviderContainer container;
 
   final now = DateTime.now();
-  Challenge newChallenge(String id, {bool done=false}) => Challenge(
-    id: id,
-    userId: 'user1',
-    title: 'T$id',
-    description: 'D$id',
-    category: ChallengeCategory.focus,
-    startDate: DateTime(now.year, now.month, now.day),
-    endDate: DateTime(now.year, now.month, now.day + 7),
-    isDone: done,
-    createdAt: now,
-    updatedAt: now,
-  );
+  Challenge newChallenge(String id, {bool done = false}) => Challenge(
+        id: id,
+        userId: 'user1',
+        title: 'T$id',
+        description: 'D$id',
+        category: ChallengeCategory.focus,
+        startDate: DateTime(now.year, now.month, now.day),
+        endDate: DateTime(now.year, now.month, now.day + 7),
+        isDone: done,
+        createdAt: now,
+        updatedAt: now,
+      );
 
   setUpAll(() async {
-    final tempDir = await Directory.systemTemp.createTemp('hive_challenges_min');
+    final tempDir =
+        await Directory.systemTemp.createTemp('hive_challenges_min');
     Hive.init(tempDir.path);
-    if(!Hive.isAdapterRegistered(0)) Hive.registerAdapter(ChallengeAdapter());
-    if(!Hive.isAdapterRegistered(2)) Hive.registerAdapter(ChallengeCategoryAdapter());
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(ChallengeAdapter());
+    if (!Hive.isAdapterRegistered(2))
+      Hive.registerAdapter(ChallengeCategoryAdapter());
   });
 
   setUp(() async {

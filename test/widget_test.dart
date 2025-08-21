@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../lib/main.dart';
+import 'package:social_balans/main.dart';
 
 void main() {
-  testWidgets('SocialBalansApp se lance', (WidgetTester tester) async {
-    // Ce test basique vérifie que l'app peut se lancer
+  testWidgets('SocialBalansApp start', (WidgetTester tester) async {
+    // Deze eenvoudige test controleert dat de app kan starten
     await tester.pumpWidget(const ProviderScope(child: SocialBalansAppMain()));
 
-    // On vérifie juste que l'app se charge sans erreur
+    // We controleren enkel dat de app zonder fouten laadt
     expect(find.byType(SocialBalansAppMain), findsOneWidget);
   });
 }

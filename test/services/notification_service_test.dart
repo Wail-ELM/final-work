@@ -124,7 +124,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('NotificationService', () {
-    test('init is no-op on web', () async {
+    test('init is no-op op web', () async {
       if (kIsWeb) {
         final service = NotificationService();
         await service.init();
@@ -134,7 +134,7 @@ void main() {
       }
     });
 
-    test('showSimpleNotification calls plugin.show', () async {
+  test('showSimpleNotification roept plugin.show aan', () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
       service.debugSetPluginOverride(fake);
@@ -155,7 +155,7 @@ void main() {
     });
 
     test(
-        'updateAllScheduledNotifications schedules daily reminder when enabled',
+  'updateAllScheduledNotifications plant dagelijkse herinnering wanneer ingeschakeld',
         () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
@@ -181,7 +181,7 @@ void main() {
       }
     });
 
-    test('updateAllScheduledNotifications cancels when disabled', () async {
+  test('updateAllScheduledNotifications annuleert wanneer uitgeschakeld', () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
       service.debugSetPluginOverride(fake);

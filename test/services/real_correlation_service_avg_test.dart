@@ -3,10 +3,10 @@ import 'package:social_balans/services/real_correlation_service.dart';
 import 'package:social_balans/models/mood_entry.dart';
 
 void main() {
-  group('RealCorrelationService moyenne journalière', () {
+  group('RealCorrelationService daggemiddelde', () {
     final service = RealCorrelationService();
     final base = DateTime(2025, 1, 1);
-    // 2 entrées le même jour, mood 2 et 6 => moyenne 4
+  // 2 invoeren op dezelfde dag, stemming 2 en 6 => gemiddelde 4
     final moods = [
       MoodEntry(
           id: 'm1',
@@ -28,13 +28,13 @@ void main() {
       base: const Duration(hours: 3),
       base.add(const Duration(days: 1)): const Duration(hours: 2),
     };
-    test('calcule la vraie moyenne par jour', () {
+  test('berekent het echte daggemiddelde', () {
       final result = service.analyzeRealCorrelation(
         moodEntries: moods,
         screenTimeData: screen,
       );
       final spots = result['correlationSpots'] as List;
-      // On attend 2 jours, mood du premier = (2+6)/2 = 4, du second = 4
+  // We verwachten 2 dagen, stemming van de eerste = (2+6)/2 = 4, van de tweede = 4
       expect(spots.length, 2);
       expect(spots[0].y, 4.0);
       expect(spots[1].y, 4.0);
