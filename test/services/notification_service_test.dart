@@ -47,8 +47,7 @@ class FakeNotificationsPlugin implements FlutterLocalNotificationsPlugin {
   @override
   Future<bool?> initialize(
     InitializationSettings initializationSettings, {
-    DidReceiveNotificationResponseCallback?
-        onDidReceiveNotificationResponse,
+    DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
     DidReceiveBackgroundNotificationResponseCallback?
         onDidReceiveBackgroundNotificationResponse,
   }) async {
@@ -134,7 +133,7 @@ void main() {
       }
     });
 
-  test('showSimpleNotification roept plugin.show aan', () async {
+    test('showSimpleNotification roept plugin.show aan', () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
       service.debugSetPluginOverride(fake);
@@ -155,7 +154,7 @@ void main() {
     });
 
     test(
-  'updateAllScheduledNotifications plant dagelijkse herinnering wanneer ingeschakeld',
+        'updateAllScheduledNotifications plant dagelijkse herinnering wanneer ingeschakeld',
         () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
@@ -181,7 +180,8 @@ void main() {
       }
     });
 
-  test('updateAllScheduledNotifications annuleert wanneer uitgeschakeld', () async {
+    test('updateAllScheduledNotifications annuleert wanneer uitgeschakeld',
+        () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
       service.debugSetPluginOverride(fake);

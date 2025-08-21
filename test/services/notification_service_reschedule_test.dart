@@ -14,7 +14,8 @@ class _FakeIOS implements IOSFlutterLocalNotificationsPlugin {
     bool? critical,
     bool? provisional,
     bool? announcement,
-  }) async => true;
+  }) async =>
+      true;
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
@@ -36,7 +37,8 @@ class FakeNotificationsPlugin implements FlutterLocalNotificationsPlugin {
     DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
     DidReceiveBackgroundNotificationResponseCallback?
         onDidReceiveBackgroundNotificationResponse,
-  }) async => true;
+  }) async =>
+      true;
 
   @override
   Future<void> cancelAll() async {
@@ -89,15 +91,15 @@ void main() {
       );
       await service.updateAllScheduledNotifications(prefs1);
 
-      final prefs2 =
-          prefs1.copyWith(dailyReminderTime: const TimeOfDay(hour: 20, minute: 0));
+      final prefs2 = prefs1.copyWith(
+          dailyReminderTime: const TimeOfDay(hour: 20, minute: 0));
       await service.updateAllScheduledNotifications(prefs2);
 
       expect(fake.cancelAllCount, 2);
       expect(fake.scheduleCount, 2);
     });
 
-  test('uitschakelen annuleert alles', () async {
+    test('uitschakelen annuleert alles', () async {
       final service = NotificationService();
       final fake = FakeNotificationsPlugin();
       service.debugSetPluginOverride(fake);

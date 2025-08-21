@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart'; // Added for url_launcher
 // import 'package:shared_preferences/shared_preferences.dart'; // No longer directly needed here
-import '../services/notification_service.dart';
 import '../providers/user_preferences_provider.dart';
 import '../core/design_system.dart'; // For AppDesignSystem if used in dialogs, etc.
 import 'profile_screen.dart'; // Import ProfileScreen

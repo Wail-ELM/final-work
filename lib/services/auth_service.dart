@@ -15,16 +15,14 @@ class AuthService {
   // om eindeloze laadschermen te vermijden als er geen events komen.
   Stream<Session?> get authStateChanges async* {
     try {
-  // Eerst de huidige sessie uitsturen (kan null zijn)
+      // Eerst de huidige sessie uitsturen (kan null zijn)
       final initial = _supabase.auth.currentSession;
       yield initial;
 
-  // Daarna statuswijzigingen doorgeven
-      yield* _supabase.auth
-          .onAuthStateChange
-          .map((event) => event.session);
+      // Daarna statuswijzigingen doorgeven
+      yield* _supabase.auth.onAuthStateChange.map((event) => event.session);
     } catch (_) {
-  // Supabase niet geïnitialiseerd: null uitsturen en netjes afsluiten
+      // Supabase niet geïnitialiseerd: null uitsturen en netjes afsluiten
       yield null;
     }
   }
@@ -34,7 +32,7 @@ class AuthService {
     try {
       return _supabase.auth.currentUser;
     } catch (_) {
-  // Supabase niet geïnitialiseerd
+      // Supabase niet geïnitialiseerd
       return null;
     }
   }
@@ -54,7 +52,7 @@ class AuthService {
         },
       );
 
-  // DB-trigger handle_new_user() maakt automatisch het profiel aan
+      // DB-trigger handle_new_user() maakt automatisch het profiel aan
 
       return response;
     } catch (e) {
@@ -144,7 +142,7 @@ class AuthService {
   // Afhandeling van authenticatiefouten
   AuthException _handleAuthError(dynamic error) {
     if (error is AuthException) {
-  // Speciale afhandeling voor e-mailbevestiging
+      // Speciale afhandeling voor e-mailbevestiging
       if (error.message.toLowerCase().contains('email_not_confirmed') ||
           error.message.toLowerCase().contains('emailnotconfirmed')) {
         return const AuthException(
@@ -152,7 +150,7 @@ class AuthService {
           statusCode: '400',
         );
       }
-  // Beheer van verlopen links
+      // Beheer van verlopen links
       if (error.message.toLowerCase().contains('otp_expired') ||
           error.message.toLowerCase().contains('link is invalid') ||
           error.message.toLowerCase().contains('has expired')) {
@@ -164,7 +162,7 @@ class AuthService {
       return error;
     }
     return const AuthException(
-  'Er is een onverwachte fout opgetreden',
+      'Er is een onverwachte fout opgetreden',
       statusCode: '500',
     );
   }

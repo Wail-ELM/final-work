@@ -12,17 +12,13 @@ class RealCorrelationService {
     required List<MoodEntry> moodEntries,
     required Map<DateTime, Duration> screenTimeData,
   }) {
-    if (moodEntries.length < 3 || screenTimeData.length < 3) {
-  return _getEmptyResult('Onvoldoende data voor analyse.');
-    }
-
     // 1. Préparer les données pour l'analyse
     final (moodValues, screenTimeValues) =
         _prepareDataForAnalysis(moodEntries, screenTimeData);
 
-    if (moodValues.length < 3) {
-      return _getEmptyResult(
-          'Niet genoeg dagen met overeenkomende gegevens.');
+    // Exiger au moins 2 jours qui se recoupent pour produire un résultat utile
+    if (moodValues.length < 2) {
+      return _getEmptyResult('Niet genoeg dagen met overeenkomende gegevens.');
     }
 
     // 2. Calculer le coefficient de corrélation de Pearson
@@ -63,21 +59,26 @@ class RealCorrelationService {
   /// Prépare et aligne les données d'humeur et de temps d'écran par jour.
   (List<double> mood, List<double> screenTime) _prepareDataForAnalysis(
       List<MoodEntry> moodEntries, Map<DateTime, Duration> screenTimeData) {
-    final Map<DateTime, double> dailyMoods = {};
+    // Accumulate sum and count per day to compute a TRUE average of moods per day
+    final Map<DateTime, double> dailyMoodSums = {};
+    final Map<DateTime, int> dailyMoodCounts = {};
     for (var entry in moodEntries) {
       final day = DateTime(
           entry.createdAt.year, entry.createdAt.month, entry.createdAt.day);
-      dailyMoods.update(day, (value) => (value + entry.moodValue) / 2,
+      dailyMoodSums.update(day, (sum) => sum + entry.moodValue.toDouble(),
           ifAbsent: () => entry.moodValue.toDouble());
+      dailyMoodCounts.update(day, (count) => count + 1, ifAbsent: () => 1);
     }
 
     final List<double> moodValues = [];
     final List<double> screenTimeValues = [];
 
-    dailyMoods.forEach((date, mood) {
+    dailyMoodSums.forEach((date, sum) {
       final screenTimeDate = DateTime(date.year, date.month, date.day);
       if (screenTimeData.containsKey(screenTimeDate)) {
-        moodValues.add(mood);
+        final count = dailyMoodCounts[date] ?? 1;
+        final avgMood = sum / count;
+        moodValues.add(avgMood);
         // Convertir en heures pour l'analyse
         screenTimeValues.add(screenTimeData[screenTimeDate]!.inMinutes / 60.0);
       }
@@ -134,16 +135,14 @@ class RealCorrelationService {
     if (correlation < -0.3) {
       recommendations.add(
           'Een hoge schermtijd lijkt samen te hangen met een lagere stemming.');
-      recommendations.add(
-          'Stel limieten in voor de meest gebruikte apps.');
+      recommendations.add('Stel limieten in voor de meest gebruikte apps.');
     } else if (correlation > 0.3) {
-      recommendations.add(
-          'Je schermgebruik lijkt je stemming niet te schaden.');
-      recommendations.add(
-          'Blijf apps gebruiken die je positiviteit verhogen.');
+      recommendations
+          .add('Je schermgebruik lijkt je stemming niet te schaden.');
+      recommendations.add('Blijf apps gebruiken die je positiviteit verhogen.');
     } else {
-      recommendations.add(
-          'Je stemming en schermtijd lijken niet sterk gekoppeld.');
+      recommendations
+          .add('Je stemming en schermtijd lijken niet sterk gekoppeld.');
     }
 
     // Estimer le temps d'écran optimal (simplifié)
@@ -166,8 +165,8 @@ class RealCorrelationService {
       'significantApps': [],
       'optimalScreenTime': 0,
       'recommendations': [
-  reason,
-  'Blijf je humeur en schermtijd registreren voor een nauwkeurigere analyse.'
+        reason,
+        'Blijf je humeur en schermtijd registreren voor een nauwkeurigere analyse.'
       ],
       'isEmpty': true,
     };

@@ -9,8 +9,20 @@ import 'package:path/path.dart' as p; // Added for path manipulation
 import 'package:social_balans/providers/auth_provider.dart';
 
 class UserDataService {
-  SupabaseClient get _supabase => Supabase.instance.client; // lazy
+  // Permet l'injection d'un client fake pour les tests
+  final dynamic _clientOverride;
+  UserDataService({dynamic clientOverride}) : _clientOverride = clientOverride;
+  // Use dynamic to allow test fakes to be injected (duck-typed client)
+  dynamic get _supabase => _clientOverride ?? Supabase.instance.client; // lazy
   final String _avatarBucket = 'avatars'; // Define bucket name
+
+  // Normalize responses to List<dynamic> for tests where fakes may return plain lists
+  Future<List<dynamic>> _awaitList(dynamic value) async {
+    final res = value is Future ? await value : value;
+    if (res is List) return res;
+    if (res is Iterable) return res.toList();
+    throw Exception('Unexpected response type');
+  }
 
   // Profil utilisateur
   Future<Map<String, dynamic>> getProfile(String userId) async {
@@ -143,8 +155,9 @@ class UserDataService {
       if (endDate != null) {
         query = query.lte('created_at', endDate.toIso8601String());
       }
-
-      final response = await query.order('created_at', ascending: false);
+      final response = await _awaitList(
+        query.order('created_at', ascending: false),
+      );
       return response.map((json) => MoodEntry.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
@@ -165,7 +178,8 @@ class UserDataService {
         'note': note,
       };
       if (id != null) payload['id'] = id;
-      if (createdAt != null) payload['created_at'] = createdAt.toIso8601String();
+      if (createdAt != null)
+        payload['created_at'] = createdAt.toIso8601String();
       await _supabase.from('mood_entries').insert(payload);
     } catch (e) {
       throw _handleError(e);
@@ -178,14 +192,23 @@ class UserDataService {
     required DateTime date,
   }) async {
     try {
-      final response = await _supabase
+      final query = _supabase
           .from('screen_time_entries')
           .select()
           .eq('user_id', userId)
-          .eq('date', date.toIso8601String().split('T')[0])
-          .order('created_at', ascending: false);
+          .eq('date', date.toIso8601String().split('T')[0]);
+      final response = await _awaitList(
+        query.order('created_at', ascending: false),
+      );
+      // Ensure an 'id' exists (real DB rows have it; fakes in tests might not)
+      final normalized = response.map<Map<String, dynamic>>((e) {
+        final m = Map<String, dynamic>.from(e as Map);
+        m['id'] ??=
+            '${m['user_id']}_${m['app_name']}_${m['date']}_${m['created_at']}';
+        return m;
+      }).toList();
 
-      return response.map((json) => ScreenTimeEntry.fromJson(json)).toList();
+      return normalized.map((json) => ScreenTimeEntry.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
     }
@@ -215,14 +238,17 @@ class UserDataService {
     bool? isDone,
   }) async {
     try {
-  // Hybrid model: read from view that joins user_challenges + challenge_templates
-  var query = _supabase.from('challenges_view').select().eq('user_id', userId);
+      // Hybrid model: read from view that joins user_challenges + challenge_templates
+      var query =
+          _supabase.from('challenges_view').select().eq('user_id', userId);
 
       if (isDone != null) {
         query = query.eq('is_done', isDone);
       }
 
-      final response = await query.order('created_at', ascending: false);
+      final response = await _awaitList(
+        query.order('created_at', ascending: false),
+      );
       return response.map((json) => Challenge.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
