@@ -13,12 +13,21 @@ void main() {
       // Arrange
       final entries = [
         // Invoeren van vandaag (gemiddelde 4.0)
-        MoodEntry(id: 't1', userId: 'u1', moodValue: 5, createdAt: today.add(const Duration(hours: 9))),
-        MoodEntry(id: 't2', userId: 'u1', moodValue: 3, createdAt: today.add(const Duration(hours: 14))),
+        MoodEntry(
+            id: 't1',
+            userId: 'u1',
+            moodValue: 5,
+            createdAt: today.add(const Duration(hours: 9))),
+        MoodEntry(
+            id: 't2',
+            userId: 'u1',
+            moodValue: 3,
+            createdAt: today.add(const Duration(hours: 14))),
         // Invoer van gisteren (binnen de week)
         MoodEntry(id: 'y1', userId: 'u1', moodValue: 2, createdAt: yesterday),
         // Invoer van 8 dagen geleden (buiten de week)
-        MoodEntry(id: 'o1', userId: 'u1', moodValue: 5, createdAt: eightDaysAgo),
+        MoodEntry(
+            id: 'o1', userId: 'u1', moodValue: 5, createdAt: eightDaysAgo),
       ];
 
       // Act

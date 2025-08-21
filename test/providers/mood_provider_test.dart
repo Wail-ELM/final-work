@@ -6,7 +6,8 @@ import 'package:social_balans/models/mood_entry.dart';
 import 'package:social_balans/providers/mood_provider.dart';
 import 'package:social_balans/services/auth_service.dart';
 import 'package:social_balans/services/user_data_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show User; // alleen User
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show User; // alleen User
 
 // Fake User voor auth
 class FakeUser extends User {
@@ -34,12 +35,18 @@ class StubUserDataService extends UserDataService {
   StubUserDataService(this.remoteEntries);
 
   @override
-  Future<List<MoodEntry>> getMoodEntries({required String userId, DateTime? startDate, DateTime? endDate}) async {
+  Future<List<MoodEntry>> getMoodEntries(
+      {required String userId, DateTime? startDate, DateTime? endDate}) async {
     return remoteEntries;
   }
 
   @override
-  Future<void> addMoodEntry({required String userId, required int moodValue, String? note, String? id, DateTime? createdAt}) async {
+  Future<void> addMoodEntry(
+      {required String userId,
+      required int moodValue,
+      String? note,
+      String? id,
+      DateTime? createdAt}) async {
     addCalled = true;
   }
 }
@@ -92,7 +99,8 @@ void main() {
   test('initiale load haalt remote entries op', () async {
     // Wacht totdat state gevuld is (poll tot 500ms)
     final start = DateTime.now();
-    while (container.read(moodsProvider).isEmpty && DateTime.now().difference(start).inMilliseconds < 500) {
+    while (container.read(moodsProvider).isEmpty &&
+        DateTime.now().difference(start).inMilliseconds < 500) {
       await Future.delayed(const Duration(milliseconds: 20));
     }
     final list = container.read(moodsProvider);

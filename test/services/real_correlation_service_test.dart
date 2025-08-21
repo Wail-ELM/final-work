@@ -43,7 +43,8 @@ void main() {
       );
       expect(result['isEmpty'], false);
       final corr = result['correlation'] as double;
-      expect(corr < -0.3, true, reason: 'verwacht duidelijke negatieve correlatie');
+      expect(corr < -0.3, true,
+          reason: 'verwacht duidelijke negatieve correlatie');
       // trendline data 2 punten
       final trend = result['trendlineData'] as List;
       expect(trend.length, 2);
@@ -72,7 +73,8 @@ void main() {
       );
       expect(result['isEmpty'], false);
       final corr = result['correlation'] as double;
-      expect(corr > 0.3, true, reason: 'verwacht duidelijke positieve correlatie');
+      expect(corr > 0.3, true,
+          reason: 'verwacht duidelijke positieve correlatie');
     });
 
     test('geen sterke correlatie', () {
@@ -97,14 +99,18 @@ void main() {
       expect(corr.abs() < 0.3, true, reason: 'verwacht zwakke correlatie');
     });
 
-    test('isEmpty wanneer minder dan 3 dagen overlappen (veel entries zelfde dag)', () {
+    test(
+        'isEmpty wanneer minder dan 3 dagen overlappen (veel entries zelfde dag)',
+        () {
       final base = DateTime(2025, 4, 1);
       final moods = [
         mood('a1', 3, base.add(const Duration(hours: 8))),
         mood('a2', 5, base.add(const Duration(hours: 10))),
         mood('a3', 4, base.add(const Duration(hours: 12))),
       ];
-      final screen = {base: const Duration(hours: 2)}; // slechts 1 dag screen time
+      final screen = {
+        base: const Duration(hours: 2)
+      }; // slechts 1 dag screen time
       final result = service.analyzeRealCorrelation(
         moodEntries: moods,
         screenTimeData: screen,

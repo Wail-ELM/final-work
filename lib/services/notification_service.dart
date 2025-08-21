@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../providers/user_preferences_provider.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
@@ -16,6 +17,9 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin? _pluginOverride; // for tests
+  FlutterLocalNotificationsPlugin get _plugin =>
+      _pluginOverride ?? _notificationsPlugin;
   GlobalKey<NavigatorState>? _navigatorKey;
   bool _isInitialized = false;
 
@@ -24,6 +28,13 @@ class NotificationService {
   }
 
   Future<void> init() async {
+    // Web: flutter_local_notifications is not supported; make this a no-op.
+    if (kIsWeb) {
+      debugPrint('[Notifications] Web detected: notifications are disabled.');
+      _isInitialized =
+          true; // Mark as initialized so callers can proceed safely.
+      return;
+    }
     tz.initializeTimeZones();
     try {
       tz.setLocalLocation(tz.getLocation('Europe/Brussels'));
@@ -48,12 +59,18 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _notificationsPlugin.initialize(
+    await _plugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
       onDidReceiveBackgroundNotificationResponse:
           _onDidReceiveBackgroundNotificationResponse,
     );
+    // Request permissions where required (iOS and Android 13+)
+    try {
+      await _requestPlatformPermissions();
+    } catch (e) {
+      debugPrint('Notification permission request failed: $e');
+    }
     _isInitialized = true;
   }
 
@@ -77,7 +94,7 @@ class NotificationService {
   }
 
   Future<bool> requestIOSPermissions() async {
-    final result = await _notificationsPlugin
+    final result = await _plugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(
@@ -94,6 +111,10 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
+    if (kIsWeb) {
+      debugPrint('[Notifications] showSimpleNotification ignored on Web');
+      return;
+    }
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'social_balans_channel_id',
@@ -108,7 +129,7 @@ class NotificationService {
         iOS: DarwinNotificationDetails(
             presentSound: true, presentBadge: true, presentAlert: true));
 
-    await _notificationsPlugin.show(
+    await _plugin.show(
       id,
       title,
       body,
@@ -126,8 +147,15 @@ class NotificationService {
     String channelId = 'social_balans_scheduled_channel',
     String channelName = 'Social Balans Geplande Meldingen',
     String channelDescription = 'Kanaal voor geplande Social Balans meldingen',
+    bool repeatDaily = false,
   }) async {
-    await _notificationsPlugin.zonedSchedule(
+    if (kIsWeb) {
+      debugPrint('[Notifications] scheduleNotification ignored on Web');
+      return;
+    }
+    // Windows: repeating schedules are not supported by plugin; fall back to one-time schedule.
+    final bool isWindows = defaultTargetPlatform == TargetPlatform.windows;
+    await _plugin.zonedSchedule(
       id,
       title,
       body,
@@ -148,7 +176,13 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       payload: payload,
+      matchDateTimeComponents:
+          (repeatDaily && !isWindows) ? DateTimeComponents.time : null,
     );
+    if (repeatDaily && isWindows) {
+      debugPrint(
+          '[Notifications] Windows detected: scheduled a one-time notification (daily repeat unsupported).');
+    }
   }
 
   Future<void> updateAllScheduledNotifications(UserPreferences prefs) async {
@@ -195,6 +229,7 @@ class NotificationService {
       channelId: 'daily_mood_reminder',
       channelName: 'Dagelijkse Humeur Herinnering',
       channelDescription: 'Herinnering om je dagelijkse humeur te loggen.',
+      repeatDaily: true,
     );
 
     debugPrint('Daily mood reminder scheduled for: $scheduledDate');
@@ -210,12 +245,34 @@ class NotificationService {
   }
 
   Future<void> cancelNotification(int id) async {
-    await _notificationsPlugin.cancel(id);
+    if (kIsWeb) return;
+    await _plugin.cancel(id);
   }
 
   Future<void> cancelAllNotifications() async {
-    if (!_isInitialized) return;
-    await _notificationsPlugin.cancelAll();
+    if (!_isInitialized || kIsWeb) return;
+    await _plugin.cancelAll();
     debugPrint('All scheduled notifications have been cancelled.');
+  }
+
+  Future<void> _requestPlatformPermissions() async {
+    if (kIsWeb) return;
+    // iOS
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+
+    // Android 13+
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+  }
+
+  // For tests only: inject a mock plugin
+  @visibleForTesting
+  void debugSetPluginOverride(FlutterLocalNotificationsPlugin plugin) {
+    _pluginOverride = plugin;
   }
 }
