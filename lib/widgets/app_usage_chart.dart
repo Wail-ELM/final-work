@@ -21,6 +21,42 @@ class _AppUsageChartState extends State<AppUsageChart>
   late AnimationController _controller;
   late Animation<double> _animation;
 
+  // Common package name substrings mapped to user-friendly app names
+  static const Map<String, String> _knownAppNames = {
+    // Social & messaging
+    'zhiliaoapp': 'TikTok', // com.zhiliaoapp.musically
+    'musically': 'TikTok',
+    'tiktok': 'TikTok',
+    'instagram': 'Instagram',
+    'whatsapp': 'WhatsApp',
+    'facebook': 'Facebook',
+    'snapchat': 'Snapchat',
+    'telegram': 'Telegram',
+    'signal': 'Signal',
+    'discord': 'Discord',
+    'twitter': 'X', // com.twitter.android → X
+
+    // Video & music
+    'youtube': 'YouTube',
+    'netflix': 'Netflix',
+    'avod': 'Prime Video', // com.amazon.avod.thirdpartyclient
+    'primevideo': 'Prime Video',
+    'spotify': 'Spotify',
+
+    // Browsers & tools
+    'chrome': 'Chrome',
+
+    // Productivity & comms
+    'gmail': 'Gmail',
+    'outlook': 'Outlook',
+    'teams': 'Microsoft Teams',
+    'meet': 'Google Meet',
+    'zoom': 'Zoom',
+
+    // AI
+    'openai': 'ChatGPT',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -40,10 +76,8 @@ class _AppUsageChartState extends State<AppUsageChart>
     super.didUpdateWidget(oldWidget);
     if (widget.appUsageData != oldWidget.appUsageData) {
       _controller.forward(from: 0);
-    }
   }
-
-  @override
+    }
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -248,7 +282,7 @@ class _AppUsageChartState extends State<AppUsageChart>
             ),
             const SizedBox(height: 24),
             Text(
-              'Gebruikstijd vandaag',
+              'Gebruikerstijd',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],
@@ -258,11 +292,25 @@ class _AppUsageChartState extends State<AppUsageChart>
   }
 
   String _getAppName(String packageName) {
-    final parts = packageName.split('.');
-    if (parts.length > 2) {
-      return parts[parts.length - 2];
+    if (packageName.isEmpty) return 'Onbekend';
+    final lower = packageName.toLowerCase();
+
+    // Try known mappings by substring
+    for (final entry in _knownAppNames.entries) {
+      if (lower.contains(entry.key)) return entry.value;
     }
-    return packageName;
+
+    // Heuristic fallback: last (or second-last) segment, cleaned and title-cased
+    final parts = packageName.split('.');
+    String guess = parts.isNotEmpty ? parts.last : packageName;
+    if (guess.isEmpty || guess == 'app' || guess == 'android' || guess == 'musically') {
+      if (parts.length >= 2) {
+        guess = parts[parts.length - 2];
+      }
+    }
+    guess = guess.replaceAll('_', ' ').trim();
+    if (guess.isEmpty) return packageName;
+    return guess.substring(0, 1).toUpperCase() + guess.substring(1);
   }
 
   String _formatDuration(Duration duration) {

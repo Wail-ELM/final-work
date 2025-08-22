@@ -7,8 +7,8 @@ class AppDesignSystem {
   // Inspirée de la nature, du calme et de l'équilibre
 
   // Verts apaisants - Couleur primaire (croissance, équilibre, nature)
-  static const Color primaryGreen = Color(0xFF16A085); // Vert émeraude doux
-  static const Color primaryGreenLight = Color(0xFF1ABC9C); // Vert turquoise
+  static const Color primaryGreen = Color(0xFF2A7866); // Vert forêt, plus profond et moins saturé
+  static const Color primaryGreenLight = Color(0xFF4C9A88); // Vert d'eau, plus doux
   static const Color primaryGreenDark = Color(0xFF0F7864); // Vert foncé
 
   // Bleus calmes - Couleur secondaire (tranquillité, sérénité)
