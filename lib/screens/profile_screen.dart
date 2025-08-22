@@ -31,7 +31,7 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil'),
+        title: const Text('Profiel'),
         actions: [
           profileAsync.when(
             data: (profile) => IconButton(
@@ -67,10 +67,10 @@ class ProfileScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-    error: (err, stack) => Center(
+        error: (err, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-      child: Text('Fout bij laden van profiel: $err'),
+            child: Text('Fout bij laden van profiel: $err'),
           ),
         ),
       ),

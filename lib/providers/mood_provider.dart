@@ -33,10 +33,10 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
     if (user == null) return;
 
     try {
-  // Humeur ingaven laden vanuit Supabase
+      // Humeur ingaven laden vanuit Supabase
       final entries = await _userDataService.getMoodEntries(userId: user.id);
 
-  // Lokaal cache bijwerken
+      // Lokaal cache bijwerken
       await _box.clear();
       for (final entry in entries) {
         await _box.put(entry.id, entry);
@@ -44,17 +44,17 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
 
       state = entries;
     } catch (e) {
-  // Bij fout: lokale gegevens behouden
-  debugPrint('Fout bij laden vanuit Supabase: $e');
+      // Bij fout: lokale gegevens behouden
+      debugPrint('Fout bij laden vanuit Supabase: $e');
     }
   }
 
   Future<void> add(MoodEntry entry) async {
-  // Eerst lokaal opslaan
-  await _box.put(entry.id, entry);
+    // Eerst lokaal opslaan
+    await _box.put(entry.id, entry);
     state = [...state, entry];
 
-  // Daarna synchroniseren met Supabase
+    // Daarna synchroniseren met Supabase
     final user = _authService.currentUser;
     if (user != null) {
       try {
@@ -66,8 +66,8 @@ class MoodsNotifier extends StateNotifier<List<MoodEntry>> {
           createdAt: entry.createdAt,
         );
       } catch (e) {
-    debugPrint('Fout bij synchronisatie met Supabase: $e');
-    // TODO: Toevoegen aan wachtrij voor later opnieuw proberen
+        debugPrint('Fout bij synchronisatie met Supabase: $e');
+        // TODO: Toevoegen aan wachtrij voor later opnieuw proberen
       }
     }
   }
@@ -177,9 +177,8 @@ final moodStatsProvider = Provider<MoodStats>((ref) {
 
   try {
     final effectiveUserId = currentUser?.id ?? DemoDataService.demoUserId;
-    final entries = allEntries
-        .where((entry) => entry.userId == effectiveUserId)
-        .toList();
+    final entries =
+        allEntries.where((entry) => entry.userId == effectiveUserId).toList();
     return MoodStats.fromEntries(entries);
   } catch (e) {
     debugPrint('Fout bij berekenen van stemmingsstatistieken: $e');
@@ -211,7 +210,7 @@ final moodSyncProvider = FutureProvider<void>((ref) async {
     await box.clear();
 
     for (final entry in moodEntries) {
-  await box.put(entry.id, entry);
+      await box.put(entry.id, entry);
     }
   } catch (e) {
     // Bij fout: lokale gegevens behouden
@@ -233,11 +232,11 @@ final addMoodEntryProvider =
     try {
       final userDataService = ref.read(userDataServiceProvider);
       await userDataService.addMoodEntry(
-  userId: entry.userId,
-  moodValue: entry.moodValue,
-  note: entry.note,
-  id: entry.id,
-  createdAt: entry.createdAt,
+        userId: entry.userId,
+        moodValue: entry.moodValue,
+        note: entry.note,
+        id: entry.id,
+        createdAt: entry.createdAt,
       );
     } catch (e) {
       debugPrint('Fout bij synchronisatie met Supabase: $e');

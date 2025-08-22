@@ -1,10 +1,10 @@
 name: social_balans
 description: Een app om je digitale balans te verbeteren.
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -58,10 +58,10 @@ dependencies:
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^6.0.0
   cloud_firestore: ^5.0.2
-  
+
   # Device apps
   # device_apps: ^2.2.0  # Package discontinued - causing build issues
-  
+
   # Usage stats
   usage_stats: ^1.0.0
   fl_chart: ^0.68.0
@@ -80,11 +80,11 @@ flutter:
   uses-material-design: true
 
   assets:
-  - .env
-  - assets/
-  - assets/images/
-  - assets/animations/
-  - assets/icons/
+    - .env
+    - assets/
+    - assets/images/
+    - assets/animations/
+    - assets/icons/
 
   # fonts:
   #   - family: Inter

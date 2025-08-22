@@ -68,11 +68,11 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen>
     setState(() => _isLoading = true);
 
     try {
-  final user = ref.read(authServiceProvider).currentUser;
+      final user = ref.read(authServiceProvider).currentUser;
 
       final moodEntry = MoodEntry(
         id: const Uuid().v4(),
-  userId: user?.id ?? DemoDataService.demoUserId,
+        userId: user?.id ?? DemoDataService.demoUserId,
         moodValue: _selectedMood,
         note: _noteController.text.trim().isEmpty
             ? null

@@ -37,6 +37,7 @@ import 'models/badge.dart';
 import 'providers/auth_provider.dart'; // Provides authStateProvider and demoModeProvider
 import 'providers/user_objective_provider.dart'; // Provides appUsageServiceProvider
 import 'providers/mood_provider.dart'; // Provides moodStatsProvider
+import 'providers/challenge_provider.dart'; // Provides allChallengesProvider
 import 'providers/badge_provider.dart'; // Import badge provider to activate the badge system
 import 'providers/user_preferences_provider.dart'; // Import userPreferencesProvider
 
@@ -226,18 +227,45 @@ class SocialBalansAppMain extends ConsumerWidget {
     ref.read(badgeControllerProvider);
     ref.read(smartChallengeTrackerProvider); // Activer le tracker de défis
 
-    // Listen to authState changes (this logic is already present and correct)
+    // Listen to authState changes: start/stop services + reset user-scoped caches
     ref.listen<AsyncValue<Session?>>(authStateProvider, (previous, next) {
       final appUsageService = ref.read(appUsageServiceProvider);
       final bool wasLoggedIn =
           previous is AsyncData<Session?> && previous.value != null;
       final bool isLoggedIn = next is AsyncData<Session?> && next.value != null;
+      final String? prevUserId =
+          previous is AsyncData<Session?> ? previous.value?.user.id : null;
+      final String? nextUserId =
+          next is AsyncData<Session?> ? next.value?.user.id : null;
       if (!wasLoggedIn && isLoggedIn) {
         debugPrint("User logged in, starting AppUsageService tracking.");
         appUsageService.startTracking();
+        // Ensure demo mode is off when a real user logs in
+        try {
+          ref.read(demoModeProvider.notifier).state = false;
+        } catch (_) {}
       } else if (wasLoggedIn && !isLoggedIn) {
         debugPrint("User logged out, stopping AppUsageService tracking.");
         appUsageService.stopTracking();
+      }
+
+      // If the user actually changed, clear local user-scoped caches and refresh
+      if (prevUserId != nextUserId) {
+        Future.microtask(() async {
+          try {
+            // Clear local boxes to avoid leaking previous account data
+            await Hive.box<Challenge>('challenges').clear();
+            await Hive.box<MoodEntry>('moods').clear();
+            await Hive.box<Badge>('badges').clear();
+          } catch (_) {}
+          // Trigger providers to reload for the current account
+          try {
+            await ref.read(moodsProvider.notifier).refresh();
+          } catch (_) {}
+          try {
+            ref.read(allChallengesProvider.notifier).refresh();
+          } catch (_) {}
+        });
       }
     });
 

@@ -411,8 +411,9 @@ class _ChallengeSuggestionsScreenState
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   onPressed: () {
-          final userId =
-            ref.read(authServiceProvider).currentUser?.id ?? DemoDataService.demoUserId;
+                    final userId =
+                        ref.read(authServiceProvider).currentUser?.id ??
+                            DemoDataService.demoUserId;
 
                     final newChallenge = suggestion.toChallenge(userId);
                     ref.read(allChallengesProvider.notifier).add(newChallenge);
@@ -447,8 +448,8 @@ class _ChallengeSuggestionsScreenState
     final currentUser = authService.currentUser;
 
     try {
-  final userId = currentUser?.id ?? DemoDataService.demoUserId;
-  final challenge = suggestion.toChallenge(userId);
+      final userId = currentUser?.id ?? DemoDataService.demoUserId;
+      final challenge = suggestion.toChallenge(userId);
       await ref.read(allChallengesProvider.notifier).add(challenge);
 
       ScaffoldMessenger.of(context).showSnackBar(

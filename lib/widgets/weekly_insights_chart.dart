@@ -286,10 +286,17 @@ class WeeklyInsightsChart extends ConsumerWidget {
 
   List<BarChartGroupData> _getScreenTimeBars(
       BuildContext context, Map<DateTime, Duration> weeklyData) {
+    // Normalize map keys to date-only for robust lookup
+    final normalized = <DateTime, Duration>{};
+    weeklyData.forEach((k, v) {
+      final d = DateTime(k.year, k.month, k.day);
+      normalized[d] = v;
+    });
+
     return List.generate(7, (index) {
       final dayToFind = DateTime.now().subtract(Duration(days: 6 - index));
       DateTime? dateKey;
-      for (var key in weeklyData.keys) {
+      for (var key in normalized.keys) {
         if (key.year == dayToFind.year &&
             key.month == dayToFind.month &&
             key.day == dayToFind.day) {
@@ -298,7 +305,8 @@ class WeeklyInsightsChart extends ConsumerWidget {
         }
       }
 
-      final screenTimeHours = (weeklyData[dateKey]?.inMinutes ?? 0) / 60.0;
+      final minutes = dateKey != null ? normalized[dateKey]!.inMinutes : 0;
+      final screenTimeHours = minutes / 60.0;
 
       return BarChartGroupData(
         x: index,

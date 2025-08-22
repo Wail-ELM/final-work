@@ -64,7 +64,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
 
   @override
   Widget build(BuildContext context) {
-  // Gegevens ophalen
+    // Gegevens ophalen
     final moodStats = ref.watch(moodStatsProvider);
     final challenges = ref
         .watch(allChallengesProvider)
@@ -87,7 +87,7 @@ class _ModernDashboardState extends ConsumerState<ModernDashboard>
 
     return RefreshIndicator(
       onRefresh: () async {
-  // Alle gegevens verversen
+        // Alle gegevens verversen
         ref.refresh(moodStatsProvider);
         ref.refresh(allChallengesProvider);
         ref.refresh(userStreakProvider);

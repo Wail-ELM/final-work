@@ -41,7 +41,7 @@ final filteredSuggestionsProvider = Provider<List<ChallengeSuggestion>>((ref) {
       return difficulty == null
           ? allSuggestions
           : allSuggestions.where((s) => s.difficulty == difficulty).toList();
-  case SuggestionFilter.all:
+    case SuggestionFilter.all:
       return allSuggestions;
   }
 });
@@ -54,7 +54,8 @@ class SuggestionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final suggestions = ref.watch(filteredSuggestionsProvider);
-  final userId = ref.watch(authServiceProvider).currentUser?.id ?? DemoDataService.demoUserId;
+    final userId = ref.watch(authServiceProvider).currentUser?.id ??
+        DemoDataService.demoUserId;
 
     return Scaffold(
       appBar: AppBar(
@@ -81,7 +82,9 @@ class SuggestionsScreen extends ConsumerWidget {
                           suggestion: suggestion,
                           onAccepted: () {
                             final newChallenge = suggestion.toChallenge(userId);
-                            ref.read(allChallengesProvider.notifier).add(newChallenge);
+                            ref
+                                .read(allChallengesProvider.notifier)
+                                .add(newChallenge);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Nieuwe uitdaging geaccepteerd!'),

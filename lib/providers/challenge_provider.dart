@@ -21,8 +21,7 @@ final allChallengesProvider =
 });
 
 class ChallengesNotifier extends StateNotifier<List<Challenge>> {
-  ChallengesNotifier(this._box, this._authService, this._userData)
-      : super([]) {
+  ChallengesNotifier(this._box, this._authService, this._userData) : super([]) {
     _init();
     _watchSub = _box.watch().listen((_) => _loadLocal());
   }
@@ -45,10 +44,11 @@ class ChallengesNotifier extends StateNotifier<List<Challenge>> {
 
   void _loadLocal() {
     final currentUser = _authService.currentUser;
-  final String effectiveUserId = currentUser?.id ?? DemoDataService.demoUserId;
+    final String effectiveUserId =
+        currentUser?.id ?? DemoDataService.demoUserId;
 
     final userChallenges = _box.values
-    .where((challenge) => challenge.userId == effectiveUserId)
+        .where((challenge) => challenge.userId == effectiveUserId)
         .toList();
     userChallenges.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     state = userChallenges;
@@ -135,7 +135,7 @@ class ChallengesNotifier extends StateNotifier<List<Challenge>> {
   }
 
   void refresh() {
-  _loadLocal();
-  _syncFromRemote();
+    _loadLocal();
+    _syncFromRemote();
   }
 }
